@@ -5,6 +5,6 @@ This is a very simple browser translation extension that provides an experience 
 
 It supports Firefox or Chrome browsers (Note: Different Background.js files are required depending on the browser; please see code).
 
-Currently, it supports using Large Language Models (LLM) and Azure Translator API.
+Currently, it supports using ~~Large Language Models (LLM) and~~ Azure Translator API.
 
 If you have requirements for other APIs, feel free to submit issues or pull requests (Thank you!).
