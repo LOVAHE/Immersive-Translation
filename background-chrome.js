@@ -1,4 +1,4 @@
-# please rename to background.js for use
+# Please rename to background.js for Chrome
 
 console.log('Background script loaded');
 
