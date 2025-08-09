@@ -1,10 +1,18 @@
 {
   "manifest_version": 3,
-  "name": "Immersive Translate",
-  "version": "2.0",
+  "name": "Immersive Translate (Cross-Browser)",
+  "version": "1.3.0",
   "default_locale": "en",
-  "description": "Modular translation with providers (Google/Azure/DeepL/OpenAI/Gemini), dictionary mode, YouTube bilingual captions, PDF & image OCR, i18n, diagnostics, and verbose logs.",
-  "permissions": ["contextMenus", "storage", "scripting", "activeTab", "tabs"],
+  "description": "Modular translation with inline rendering, dictionary mode, YouTube captions, PDF/Image OCR, i18n, and pluggable providers (OpenAI/Gemini/Azure).",
+
+  "permissions": [
+    "contextMenus",
+    "storage",
+    "scripting",
+    "activeTab",
+    "tabs"
+  ],
+
   "host_permissions": [
     "https://translation.googleapis.com/*",
     "https://api.cognitive.microsofttranslator.com/*",
@@ -15,9 +23,17 @@
     "https://generativelanguage.googleapis.com/*",
     "https://cdn.jsdelivr.net/*"
   ],
-  "background": { "service_worker": "background.js", "type": "module" },
+
+  "background": {
+    "service_worker": "background.js",
+    "scripts": ["background.js"],
+    "type": "module",
+    "preferred_environment": ["service_worker", "document"]
+  },
+
   "action": { "default_title": "Immersive Translate" },
   "options_page": "options/options.html",
+
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
@@ -25,18 +41,33 @@
       "run_at": "document_idle"
     }
   ],
+
   "web_accessible_resources": [
     {
       "resources": [
         "core/*.js",
         "providers/*.js",
-        "content/*.js",
         "prompts/*.js",
-        "vendor/*.js",
-        "pages/*",
-        "options/*"
+        "content/*.js",
+        "pages/*.html",
+        "options/*.html",
+        "tailwind.min.css"
       ],
       "matches": ["<all_urls>"]
     }
-  ]
+  ],
+
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "immersive-translate@example.com",
+      "strict_min_version": "121.0"
+    }
+  }
 }
