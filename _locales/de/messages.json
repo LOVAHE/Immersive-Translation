@@ -1,0 +1,40 @@
+{
+  "menuTranslate": { "message": "Übersetzen" },
+  "menuTranslatePage": { "message": "Seite übersetzen" },
+  "menuTranslateImage": { "message": "Bild übersetzen" },
+  "menuTranslatePDF": { "message": "PDF übersetzen (im Viewer öffnen)" },
+
+  "optProvider": { "message": "Anbieter" },
+  "optSourceLang": { "message": "Ausgangssprache" },
+  "optTargetLang": { "message": "Zielsprache" },
+  "optUILang": { "message": "UI-Sprache" },
+  "optEnableDict": { "message": "Bei einzelnen Wörtern Wörterbuchmodus verwenden" },
+
+  "ocrHeader": { "message": "OCR" },
+  "ocrEnable": { "message": "Lokale OCR (Tesseract.js) aktivieren" },
+  "ocrLangs": { "message": "OCR-Sprachen (durch Komma getrennt, z. B. eng,chi_sim,jpn)" },
+  "ocrEngine": { "message": "OCR-Engine" },
+  "ocrEngineLocal": { "message": "Lokal (Tesseract.js)" },
+  "ocrEngineVision": { "message": "LLM-Vision (nur Fallback)" },
+  "visionFallback": { "message": "LLM-Vision als Fallback verwenden, wenn OCR fehlschlägt" },
+
+  "ytHeader": { "message": "YouTube-Untertitel" },
+  "ytPrefLabel": { "message": "Priorität der Übersetzungsquelle" },
+  "ytPrefBuiltin": { "message": "Eingebaut bevorzugen" },
+  "ytPrefApi": { "message": "API bevorzugen" },
+  "ytBilingual": { "message": "Zweisprachige Überlagerung (Original + Übersetzung) aktivieren" },
+
+  "labelTranslation": { "message": "Übersetzung" },
+  "labelSynonyms": { "message": "Synonyme" },
+  "labelError": { "message": "Fehler" },
+
+  "promptHeader": { "message": "LLM-Prompts" },
+  "promptDesc":   { "message": "Prompts für OpenAI/Gemini (Wörterbuch & Übersetzung) anpassen." },
+  "promptEditor": { "message": "Prompt-Editor" },
+  "promptTranslate": { "message": "Übersetzungs-Prompt" },
+  "promptDict": { "message": "Wörterbuch-Prompt" },
+  "promptSystem": { "message": "System" },
+  "promptUser": { "message": "Benutzer" },
+  "btnOpenPromptEditor": { "message": "Prompt-Editor öffnen" },
+  "btnReset": { "message": "Zurücksetzen" }
+}

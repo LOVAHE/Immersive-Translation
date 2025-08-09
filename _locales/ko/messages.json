@@ -1,0 +1,40 @@
+{
+  "menuTranslate": { "message": "번역" },
+  "menuTranslatePage": { "message": "페이지 번역" },
+  "menuTranslateImage": { "message": "이미지 번역" },
+  "menuTranslatePDF": { "message": "PDF 번역(뷰어로 열기)" },
+
+  "optProvider": { "message": "프로바이더" },
+  "optSourceLang": { "message": "원문 언어" },
+  "optTargetLang": { "message": "대상 언어" },
+  "optUILang": { "message": "UI 언어" },
+  "optEnableDict": { "message": "단어만 선택 시 사전 모드 사용" },
+
+  "ocrHeader": { "message": "OCR" },
+  "ocrEnable": { "message": "로컬 OCR(Tesseract.js) 사용" },
+  "ocrLangs": { "message": "OCR 언어(쉼표로 구분, 예: eng,chi_sim,jpn)" },
+  "ocrEngine": { "message": "OCR 엔진" },
+  "ocrEngineLocal": { "message": "로컬(Tesseract.js)" },
+  "ocrEngineVision": { "message": "LLM 비전(폴백 전용)" },
+  "visionFallback": { "message": "OCR 실패 시 LLM 비전 사용" },
+
+  "ytHeader": { "message": "YouTube 자막" },
+  "ytPrefLabel": { "message": "번역 소스 우선순위" },
+  "ytPrefBuiltin": { "message": "내장 우선" },
+  "ytPrefApi": { "message": "API 우선" },
+  "ytBilingual": { "message": "이중 언어 오버레이(원문 + 번역) 사용" },
+
+  "labelTranslation": { "message": "번역" },
+  "labelSynonyms": { "message": "동의어" },
+  "labelError": { "message": "오류" },
+
+  "promptHeader": { "message": "LLM 프롬프트" },
+  "promptDesc":   { "message": "OpenAI / Gemini 사전 및 번역 프롬프트를 사용자 지정합니다." },
+  "promptEditor": { "message": "프롬프트 편집기" },
+  "promptTranslate": { "message": "번역 프롬프트" },
+  "promptDict": { "message": "사전 프롬프트" },
+  "promptSystem": { "message": "시스템" },
+  "promptUser": { "message": "사용자" },
+  "btnOpenPromptEditor": { "message": "프롬프트 편집기 열기" },
+  "btnReset": { "message": "초기화" }
+}

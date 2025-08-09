@@ -1,0 +1,40 @@
+{
+  "menuTranslate": { "message": "翻译" },
+  "menuTranslatePage": { "message": "翻译整页" },
+  "menuTranslateImage": { "message": "翻译图片" },
+  "menuTranslatePDF": { "message": "翻译 PDF（在查看器中打开）" },
+
+  "optProvider": { "message": "提供商" },
+  "optSourceLang": { "message": "源语言" },
+  "optTargetLang": { "message": "目标语言" },
+  "optUILang": { "message": "界面语言" },
+  "optEnableDict": { "message": "选中“单词”时使用词典模式" },
+
+  "ocrHeader": { "message": "OCR" },
+  "ocrEnable": { "message": "启用本地 OCR（Tesseract.js）" },
+  "ocrLangs": { "message": "OCR 语言（逗号分隔，如 eng,chi_sim,jpn）" },
+  "ocrEngine": { "message": "OCR 引擎" },
+  "ocrEngineLocal": { "message": "本地（Tesseract.js）" },
+  "ocrEngineVision": { "message": "仅使用 LLM 视觉兜底" },
+  "visionFallback": { "message": "OCR 失败时使用 LLM 视觉兜底" },
+
+  "ytHeader": { "message": "YouTube 字幕" },
+  "ytPrefLabel": { "message": "翻译来源优先级" },
+  "ytPrefBuiltin": { "message": "优先内建" },
+  "ytPrefApi": { "message": "优先 API" },
+  "ytBilingual": { "message": "启用双语叠加（原文+译文）" },
+
+  "labelTranslation": { "message": "翻译" },
+  "labelSynonyms": { "message": "同义词" },
+  "labelError": { "message": "错误" },
+
+  "promptHeader": { "message": "LLM 提示词" },
+  "promptDesc":   { "message": "为 OpenAI / Gemini 配置翻译与词典提示词。" },
+  "promptEditor": { "message": "提示词编辑器" },
+  "promptTranslate": { "message": "翻译提示词" },
+  "promptDict": { "message": "词典提示词" },
+  "promptSystem": { "message": "System（系统提示）" },
+  "promptUser": { "message": "User（用户提示）" },
+  "btnOpenPromptEditor": { "message": "打开提示词编辑器" },
+  "btnReset": { "message": "重置" }
+}

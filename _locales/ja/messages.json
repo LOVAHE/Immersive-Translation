@@ -1,0 +1,40 @@
+{
+  "menuTranslate": { "message": "翻訳" },
+  "menuTranslatePage": { "message": "ページを翻訳" },
+  "menuTranslateImage": { "message": "画像を翻訳" },
+  "menuTranslatePDF": { "message": "PDF を翻訳（ビューワーで開く）" },
+
+  "optProvider": { "message": "プロバイダー" },
+  "optSourceLang": { "message": "ソース言語" },
+  "optTargetLang": { "message": "ターゲット言語" },
+  "optUILang": { "message": "UI 言語" },
+  "optEnableDict": { "message": "単語のみの場合は辞書モードを使用" },
+
+  "ocrHeader": { "message": "OCR" },
+  "ocrEnable": { "message": "ローカル OCR（Tesseract.js）を有効にする" },
+  "ocrLangs": { "message": "OCR 言語（カンマ区切り。例: eng,chi_sim,jpn）" },
+  "ocrEngine": { "message": "OCR エンジン" },
+  "ocrEngineLocal": { "message": "ローカル（Tesseract.js）" },
+  "ocrEngineVision": { "message": "LLM ビジョン（フォールバックのみ）" },
+  "visionFallback": { "message": "OCR に失敗した場合は LLM ビジョンを使用" },
+
+  "ytHeader": { "message": "YouTube 字幕" },
+  "ytPrefLabel": { "message": "翻訳ソースの優先順位" },
+  "ytPrefBuiltin": { "message": "内蔵を優先" },
+  "ytPrefApi": { "message": "API を優先" },
+  "ytBilingual": { "message": "二言語オーバーレイ（原文 + 翻訳）を有効にする" },
+
+  "labelTranslation": { "message": "翻訳" },
+  "labelSynonyms": { "message": "類義語" },
+  "labelError": { "message": "エラー" },
+
+  "promptHeader": { "message": "LLM プロンプト" },
+  "promptDesc":   { "message": "OpenAI / Gemini の辞書および翻訳用プロンプトをカスタマイズします。" },
+  "promptEditor": { "message": "プロンプトエディタ" },
+  "promptTranslate": { "message": "翻訳プロンプト" },
+  "promptDict": { "message": "辞書プロンプト" },
+  "promptSystem": { "message": "システム" },
+  "promptUser": { "message": "ユーザー" },
+  "btnOpenPromptEditor": { "message": "プロンプトエディタを開く" },
+  "btnReset": { "message": "リセット" }
+}

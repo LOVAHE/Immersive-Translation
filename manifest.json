@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "Immersive Translate",
+  "version": "2.0",
+  "default_locale": "en",
+  "description": "Modular translation with providers (Google/Azure/DeepL/OpenAI/Gemini), dictionary mode, YouTube bilingual captions, PDF & image OCR, i18n, diagnostics, and verbose logs.",
+  "permissions": ["contextMenus", "storage", "scripting", "activeTab", "tabs"],
+  "host_permissions": [
+    "https://translation.googleapis.com/*",
+    "https://api.cognitive.microsofttranslator.com/*",
+    "https://api.deepl.com/*",
+    "https://api-free.deepl.com/*",
+    "https://api.openai.com/*",
+    "https://*/v1/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://cdn.jsdelivr.net/*"
+  ],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_title": "Immersive Translate" },
+  "options_page": "options/options.html",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "core/*.js",
+        "providers/*.js",
+        "content/*.js",
+        "prompts/*.js",
+        "vendor/*.js",
+        "pages/*",
+        "options/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

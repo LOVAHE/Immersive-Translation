@@ -1,0 +1,40 @@
+{
+  "menuTranslate": { "message": "Traducir" },
+  "menuTranslatePage": { "message": "Traducir página" },
+  "menuTranslateImage": { "message": "Traducir imagen" },
+  "menuTranslatePDF": { "message": "Traducir PDF (abrir visor)" },
+
+  "optProvider": { "message": "Proveedor" },
+  "optSourceLang": { "message": "Idioma de origen" },
+  "optTargetLang": { "message": "Idioma de destino" },
+  "optUILang": { "message": "Idioma de la interfaz" },
+  "optEnableDict": { "message": "Usar modo diccionario para palabras sueltas" },
+
+  "ocrHeader": { "message": "OCR" },
+  "ocrEnable": { "message": "Habilitar OCR local (Tesseract.js)" },
+  "ocrLangs": { "message": "Idiomas de OCR (separados por comas, ej.: eng,chi_sim,jpn)" },
+  "ocrEngine": { "message": "Motor de OCR" },
+  "ocrEngineLocal": { "message": "Local (Tesseract.js)" },
+  "ocrEngineVision": { "message": "Solo LLM Vision como respaldo" },
+  "visionFallback": { "message": "Usar LLM Vision como respaldo si falla el OCR" },
+
+  "ytHeader": { "message": "Subtítulos de YouTube" },
+  "ytPrefLabel": { "message": "Prioridad de la fuente de traducción" },
+  "ytPrefBuiltin": { "message": "Preferir integrado" },
+  "ytPrefApi": { "message": "Preferir API" },
+  "ytBilingual": { "message": "Activar superposición bilingüe (original + traducción)" },
+
+  "labelTranslation": { "message": "Traducción" },
+  "labelSynonyms": { "message": "Sinónimos" },
+  "labelError": { "message": "Error" },
+
+  "promptHeader": { "message": "Prompts de LLM" },
+  "promptDesc":   { "message": "Personaliza los prompts de diccionario y traducción para OpenAI / Gemini." },
+  "promptEditor": { "message": "Editor de prompts" },
+  "promptTranslate": { "message": "Prompt de traducción" },
+  "promptDict": { "message": "Prompt de diccionario" },
+  "promptSystem": { "message": "Sistema" },
+  "promptUser": { "message": "Usuario" },
+  "btnOpenPromptEditor": { "message": "Abrir editor de prompts" },
+  "btnReset": { "message": "Restablecer" }
+}

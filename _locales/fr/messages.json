@@ -1,0 +1,40 @@
+{
+  "menuTranslate": { "message": "Traduire" },
+  "menuTranslatePage": { "message": "Traduire la page" },
+  "menuTranslateImage": { "message": "Traduire l’image" },
+  "menuTranslatePDF": { "message": "Traduire le PDF (ouvrir dans le lecteur)" },
+
+  "optProvider": { "message": "Fournisseur" },
+  "optSourceLang": { "message": "Langue source" },
+  "optTargetLang": { "message": "Langue cible" },
+  "optUILang": { "message": "Langue de l’interface" },
+  "optEnableDict": { "message": "Utiliser le mode dictionnaire pour les mots isolés" },
+
+  "ocrHeader": { "message": "OCR" },
+  "ocrEnable": { "message": "Activer l’OCR local (Tesseract.js)" },
+  "ocrLangs": { "message": "Langues OCR (séparées par des virgules, ex. : eng,chi_sim,jpn)" },
+  "ocrEngine": { "message": "Moteur OCR" },
+  "ocrEngineLocal": { "message": "Local (Tesseract.js)" },
+  "ocrEngineVision": { "message": "Vision LLM (secours uniquement)" },
+  "visionFallback": { "message": "Utiliser la vision LLM en secours si l’OCR échoue" },
+
+  "ytHeader": { "message": "Sous-titres YouTube" },
+  "ytPrefLabel": { "message": "Priorité de la source de traduction" },
+  "ytPrefBuiltin": { "message": "Privilégier l’intégrée" },
+  "ytPrefApi": { "message": "Privilégier l’API" },
+  "ytBilingual": { "message": "Activer la superposition bilingue (original + traduction)" },
+
+  "labelTranslation": { "message": "Traduction" },
+  "labelSynonyms": { "message": "Synonymes" },
+  "labelError": { "message": "Erreur" },
+
+  "promptHeader": { "message": "Invites LLM" },
+  "promptDesc":   { "message": "Personnalisez les invites pour le dictionnaire et la traduction (OpenAI / Gemini)." },
+  "promptEditor": { "message": "Éditeur d’invites" },
+  "promptTranslate": { "message": "Invite de traduction" },
+  "promptDict": { "message": "Invite de dictionnaire" },
+  "promptSystem": { "message": "Système" },
+  "promptUser": { "message": "Utilisateur" },
+  "btnOpenPromptEditor": { "message": "Ouvrir l’éditeur d’invites" },
+  "btnReset": { "message": "Réinitialiser" }
+}

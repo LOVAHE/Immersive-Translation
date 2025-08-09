@@ -1,0 +1,40 @@
+{
+  "menuTranslate": { "message": "Translate" },
+  "menuTranslatePage": { "message": "Translate Page" },
+  "menuTranslateImage": { "message": "Translate Image" },
+  "menuTranslatePDF": { "message": "Translate PDF (open viewer)" },
+
+  "optProvider": { "message": "Provider" },
+  "optSourceLang": { "message": "Source language" },
+  "optTargetLang": { "message": "Target language" },
+  "optUILang": { "message": "UI language" },
+  "optEnableDict": { "message": "Use dictionary mode for single words" },
+
+  "ocrHeader": { "message": "OCR" },
+  "ocrEnable": { "message": "Enable local OCR (Tesseract.js)" },
+  "ocrLangs": { "message": "OCR languages (comma-separated, e.g. eng,chi_sim,jpn)" },
+  "ocrEngine": { "message": "OCR engine" },
+  "ocrEngineLocal": { "message": "Local (Tesseract.js)" },
+  "ocrEngineVision": { "message": "LLM Vision fallback only" },
+  "visionFallback": { "message": "Use LLM Vision fallback if OCR fails" },
+
+  "ytHeader": { "message": "YouTube captions" },
+  "ytPrefLabel": { "message": "Translation source priority" },
+  "ytPrefBuiltin": { "message": "Prefer built-in" },
+  "ytPrefApi": { "message": "Prefer API" },
+  "ytBilingual": { "message": "Enable bilingual overlay (original + translation)" },
+
+  "labelTranslation": { "message": "Translation" },
+  "labelSynonyms": { "message": "Synonyms" },
+  "labelError": { "message": "Error" },
+
+  "promptHeader": { "message": "LLM Prompts" },
+  "promptDesc":   { "message": "Customize prompts for OpenAI / Gemini dictionary & translation." },
+  "promptEditor": { "message": "Prompt Editor" },
+  "promptTranslate": { "message": "Translate Prompt" },
+  "promptDict": { "message": "Dictionary Prompt" },
+  "promptSystem": { "message": "System" },
+  "promptUser": { "message": "User" },
+  "btnOpenPromptEditor": { "message": "Open Prompt Editor" },
+  "btnReset": { "message": "Reset" }
+}
