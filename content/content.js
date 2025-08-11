@@ -40,9 +40,13 @@ async function safeImport(path) {
     color:#111;
     box-shadow:0 4px 18px rgba(0,0,0,.06);
     font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,sans-serif;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:8px;
   }
-  .it-inline-translation .tgt{ color:#0f172a; }
-  .it-inline-translation .close{ float:right; cursor:pointer; opacity:.6 }
+  .it-inline-translation .tgt{ color:#0f172a; flex-grow:1; }
+  .it-inline-translation .close{ cursor:pointer; opacity:.6; flex-shrink:0; }
 
   .it-think-btn{
     position:absolute; left:-8px; top:10px; transform:translateX(-100%);
@@ -101,7 +105,7 @@ function renderDictionaryBubble(dic){
 function insertBelow(el, html, meta) {
   const holder = document.createElement('div');
   holder.className = 'it-inline-translation';
-  holder.innerHTML = `<span class="close">✕</span>${html}`;
+  holder.innerHTML = `${html}<span class="close">✕</span>`;
   el.after(holder);
   holder.querySelector('.close')?.addEventListener('click',()=> holder.remove());
 
