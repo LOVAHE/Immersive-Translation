@@ -23,7 +23,7 @@ A modular, privacy-minded translation extension for Chromium browsers (Manifest 
 ## Settings (Options)
 
 ### General
-- **Provider**: OpenAI / Gemini / Azure Translator  
+- **Provider**: OpenAI / Gemini / ChromeAI / Google Translator / Azure Translator / DeepL Translator  
 - **Source language**: `"auto"` or a specific code  
 - **Target language**: independent from UI language  
 - **Dictionary mode**: use dictionary view for single-word selections
