@@ -1,7 +1,7 @@
 // background.js
 
 import { createContextMenus } from './core/utils.js';
-import { handleTranslate } from './core/router.js';
+import { handleTranslate, handleVisionTranslate } from './core/router.js';
 import { getProvider } from './providers/index.js';
 import { api } from './core/browser.js';
 import { getSettings, setSettings } from './core/settings.js';
@@ -116,6 +116,15 @@ api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         return sendResponse({ ok: true, result });
       } catch (err) {
         L.error('translateText error', err);
+        return sendResponse({ ok: false, error: err.message || String(err) });
+      }
+    }
+    if (msg?.action === 'visionTranslate') {
+      try {
+        const result = await handleVisionTranslate(msg.details);
+        return sendResponse({ ok: true, result });
+      } catch (err) {
+        L.error('visionTranslate error', err);
         return sendResponse({ ok: false, error: err.message || String(err) });
       }
     }
