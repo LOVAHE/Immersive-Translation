@@ -22,7 +22,7 @@
 ## 设置（选项）
 
 ### 基本
-- **翻译服务**：OpenAI / Gemini / Azure Translator  
+- **翻译服务**：OpenAI / Gemini / ChromeAI / Google Translator / Azure Translator / DeepL Translator
 - **源语言**：`"auto"` 或指定语言代码  
 - **目标语言**：与 UI 语言独立  
 - **词典模式**：当选中单词时使用词典视图
