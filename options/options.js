@@ -1,6 +1,8 @@
 // options/options.js
+
 import { getSettings, setSettings } from '../core/settings.js';
 import { initI18n, t } from '../core/i18n.js';
+import { ChromeAiTranslate } from '../providers/chromeAi.js';
 
 const api = (globalThis.chrome ?? globalThis.browser);
 
@@ -157,6 +159,20 @@ function attachDiagnostics() {
 
     await initI18n(s.uiLang || 'en');
     applyI18n();
+
+    // Add Chrome AI provider if available
+    const chromeAiStatus = await ChromeAiTranslate.getAvailability();
+    if (chromeAiStatus !== 'unavailable') {
+      const providerSelect = $('provider');
+      const opt = document.createElement('option');
+      opt.value = 'chrome-ai';
+      opt.textContent = 'Chrome AI (Local)';
+      if (chromeAiStatus === 'downloading') {
+        opt.textContent += ' (downloading...)';
+        opt.disabled = true;
+      }
+      providerSelect.appendChild(opt);
+    }
 
     document.querySelector('#provider option[value="openai-compat"]')?.remove();
 
