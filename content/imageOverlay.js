@@ -30,13 +30,15 @@ export async function translateImageFromUrl(imgUrl) {
     const translatedParts = (resp2.result?.translated || '').split(SEP);
     resultItems = lines.map((l, i) => ({ bbox: l.bbox, src: l.text, tgt: translatedParts[i] || '' }));
   } else if (s.visionFallback) {
-    const provider = (await import('../providers/index.js')).getProvider(s.provider, s);
     const reader = new FileReader();
-    const dataUrl = await new Promise(r=>{ reader.onload = ()=> r(reader.result); reader.readAsDataURL(blob); });
-    if (typeof provider.visionTranslate === 'function') {
-      const { translated } = await provider.visionTranslate({ imageDataUrl: dataUrl, targetLang: s.targetLang });
-      resultItems = [{ bbox: [0,0,0,0], src: '', tgt: translated }];
-    }
+    const dataUrl = await new Promise(r => { reader.onload = () => r(reader.result); reader.readAsDataURL(blob); });
+    const response = await chrome.runtime.sendMessage({
+      action: 'visionTranslate',
+      details: { imageDataUrl: dataUrl, targetLang: s.targetLang }
+    });
+    if (!response?.ok) throw new Error(response?.error || 'Vision translate failed');
+    const { translated } = response.result;
+    resultItems = [{ bbox: [0,0,0,0], src: '', tgt: translated }];
   }
 
   mountOverlayOnImage(imgUrl, resultItems);
