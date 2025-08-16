@@ -10,7 +10,8 @@
     "storage",
     "scripting",
     "activeTab",
-    "tabs"
+    "tabs",
+    "offscreen"
   ],
 
   "host_permissions": [
@@ -71,3 +72,4 @@
     }
   }
 }
+
