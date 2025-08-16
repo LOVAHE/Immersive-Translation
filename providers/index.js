@@ -5,9 +5,17 @@ import { AzureTranslate } from './azureTranslate.js';
 import { DeepLTranslate } from './deepl.js';
 import { OpenAIChatTranslate } from './openai.js';
 import { GeminiTranslate } from './gemini.js';
+import { ChromeAiTranslate } from './chromeAi.js';
 
 export function getProvider(id, settings = {}) {
   switch (id) {
+    case 'chrome-ai':
+      return new ChromeAiTranslate({
+        promptTranslateSystem: settings.openaiPromptTranslateSystem,
+        promptTranslateUser:   settings.openaiPromptTranslateUser,
+        promptDictSystem:      settings.openaiPromptDictSystem,
+        promptDictUser:        settings.openaiPromptDictUser
+      });
     case 'google':
       return new GoogleTranslate({ apiKey: settings.googleApiKey });
     case 'azure':
