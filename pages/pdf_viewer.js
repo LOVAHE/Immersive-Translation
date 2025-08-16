@@ -62,10 +62,13 @@ const src = qs.get('src');
           lines.forEach((l, i) => addBlock(layer, l.bbox, l.text, parts[i] || ''));
         }
       } else if (s.visionFallback) {
-        const provider = (await import('../providers/index.js')).getProvider(s.provider, s);
-        if (typeof provider.visionTranslate === 'function') {
-          const dataUrl = await blobToDataURL(p.blob);
-          const { translated } = await provider.visionTranslate({ imageDataUrl: dataUrl, targetLang: s.targetLang });
+        const dataUrl = await blobToDataURL(p.blob);
+        const response = await api.runtime.sendMessage({
+          action: 'visionTranslate',
+          details: { imageDataUrl: dataUrl, targetLang: s.targetLang }
+        });
+        if (response?.ok) {
+          const { translated } = response.result;
           addCentered(layer, translated);
         }
       }
