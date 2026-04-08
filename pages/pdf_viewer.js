@@ -6,10 +6,10 @@ const api = (globalThis.chrome ?? globalThis.browser);
 const qs = new URLSearchParams(location.search);
 const src = qs.get('src');
 
-(async function main(){
+(async function main() {
   if (!src) { document.body.textContent = 'Missing ?src='; return; }
   const s = await getSettings();
-  const ab = await fetch(src, { credentials:'include' }).then(r=>r.arrayBuffer());
+  const ab = await fetch(src, { credentials: 'include' }).then(r => r.arrayBuffer());
   const doc = await extractPdf({ arrayBuffer: ab, dpi: 180 });
 
   const container = document.getElementById('c');
@@ -20,13 +20,11 @@ const src = qs.get('src');
     pageHost.style.width = p.width + 'px';
     pageHost.style.height = p.height + 'px';
 
-    if (p.mode === 'image') {
-      const img = document.createElement('img');
-      img.src = URL.createObjectURL(p.blob);
-      img.style.display = 'block';
-      img.style.width = '100%';
-      pageHost.appendChild(img);
-    }
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(p.blob);
+    img.style.display = 'block';
+    img.style.width = '100%';
+    pageHost.appendChild(img);
 
     const layer = document.createElement('div');
     layer.className = 'layer';
@@ -39,7 +37,7 @@ const src = qs.get('src');
       const items = groupLines(p.items);
       const SEP = '\n\u2063\u2063\u2063\n';
       const payload = items.map(it => it.text).join(SEP);
-      const resp = await api.runtime.sendMessage({ action:'translateText', text: payload, targetLang: s.targetLang });
+      const resp = await api.runtime.sendMessage({ action: 'translateText', text: payload, targetLang: s.targetLang });
       if (!resp?.ok) continue;
       const parts = (resp.result?.translated || '').split(SEP);
       items.forEach((it, i) => addBlock(layer, it.bbox, it.text, parts[i] || ''));
@@ -47,7 +45,7 @@ const src = qs.get('src');
       let words = [];
       try {
         if (s.ocrEnabled && s.ocrEngine === 'tesseract') {
-          const langs = (s.ocrLangs || 'eng').split(',').map(x=>x.trim()).filter(Boolean);
+          const langs = (s.ocrLangs || 'eng').split(',').map(x => x.trim()).filter(Boolean);
           const out = await ocrImageBlob(p.blob, langs);
           words = out.words || [];
         }
@@ -56,7 +54,7 @@ const src = qs.get('src');
         const lines = clusterLines(words);
         const SEP = '\n\u2063\u2063\u2063\n';
         const payload = lines.map(l => l.text).join(SEP);
-        const resp2 = await api.runtime.sendMessage({ action:'translateText', text: payload, targetLang: s.targetLang });
+        const resp2 = await api.runtime.sendMessage({ action: 'translateText', text: payload, targetLang: s.targetLang });
         if (resp2?.ok) {
           const parts = (resp2.result?.translated || '').split(SEP);
           lines.forEach((l, i) => addBlock(layer, l.bbox, l.text, parts[i] || ''));
@@ -77,11 +75,17 @@ const src = qs.get('src');
 })();
 
 function addBlock(layer, bbox, src, tgt) {
-  const [x1,y1,x2,y2] = bbox;
+  const [x1, y1, x2, y2] = bbox;
   const el = document.createElement('div');
   el.className = 'block';
-  Object.assign(el.style, { left: x1+'px', top: y2+'px', width: (x2-x1)+'px' });
-  el.innerHTML = `<span class="row">${escapeHTML(src)}</span><span class="row tl">${escapeHTML(tgt)}</span>`;
+  Object.assign(el.style, {
+    left: x1 + 'px',
+    top: y1 + 'px',
+    minWidth: (x2 - x1) + 'px',
+    maxWidth: Math.max(300, (x2 - x1) * 1.2) + 'px'
+  });
+
+  el.innerHTML = `<div class="tl-bubble">${escapeHTML(tgt)}</div>`;
   layer.appendChild(el);
 }
 function addCentered(layer, text) {
@@ -95,7 +99,7 @@ function addCentered(layer, text) {
   layer.appendChild(el);
 }
 function groupLines(items) {
-  const sorted = [...items].sort((a,b)=> (a.bbox[1]-b.bbox[1]) || (a.bbox[0]-b.bbox[0]));
+  const sorted = [...items].sort((a, b) => (a.bbox[1] - b.bbox[1]) || (a.bbox[0] - b.bbox[0]));
   const rows = []; const yTol = 4;
   for (const it of sorted) {
     const y = (it.bbox[1] + it.bbox[3]) / 2;
@@ -104,14 +108,14 @@ function groupLines(items) {
     row.items.push(it);
   }
   return rows.map(r => {
-    const text = r.items.map(i=>i.text).join(' ');
-    const xs = r.items.flatMap(i=>[i.bbox[0], i.bbox[2]]);
-    const ys = r.items.flatMap(i=>[i.bbox[1], i.bbox[3]]);
-    return { text, bbox:[Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] };
+    const text = r.items.map(i => i.text).join(' ');
+    const xs = r.items.flatMap(i => [i.bbox[0], i.bbox[2]]);
+    const ys = r.items.flatMap(i => [i.bbox[1], i.bbox[3]]);
+    return { text, bbox: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] };
   });
 }
 function clusterLines(words) {
-  const sorted = [...words].sort((a,b)=> (a.bbox[1]-b.bbox[1]) || (a.bbox[0]-b.bbox[0]));
+  const sorted = [...words].sort((a, b) => (a.bbox[1] - b.bbox[1]) || (a.bbox[0] - b.bbox[0]));
   const rows = []; const yTol = 10;
   for (const w of sorted) {
     const y = (w.bbox[1] + w.bbox[3]) / 2;
@@ -122,8 +126,8 @@ function clusterLines(words) {
   return rows.map(r => {
     const xs = r.words.flatMap(w => [w.bbox[0], w.bbox[2]]);
     const ys = r.words.flatMap(w => [w.bbox[1], w.bbox[3]]);
-    return { text: r.words.map(w=>w.text).join(' '), bbox: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] };
+    return { text: r.words.map(w => w.text).join(' '), bbox: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] };
   });
 }
-function escapeHTML(s=''){ return s.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
-function blobToDataURL(b){ return new Promise(r=>{ const fr=new FileReader(); fr.onload=()=>r(fr.result); fr.readAsDataURL(b); }); }
+function escapeHTML(s = '') { return s.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+function blobToDataURL(b) { return new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(b); }); }

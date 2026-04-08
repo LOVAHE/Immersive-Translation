@@ -151,7 +151,7 @@ function renderSelectionPopup(r, text, meta) {
   pop.style.left = Math.min(rect.left + window.scrollX, document.body.scrollWidth - 420) + 'px';
   pop.style.top = (rect.bottom + window.scrollY + 8) + 'px';
   
-  const htmlObj = text.startsWith('<div') ? text : `<div>${esc(text)}</div>`; // basic wrapping
+  const htmlObj = text.startsWith('<div') ? text : `<div>${esc(text)}</div>`;
   
   pop.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">

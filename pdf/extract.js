@@ -4,27 +4,32 @@ export async function extractPdf({ arrayBuffer, dpi = 180 }) {
   if (!pdfjsLib) pdfjsLib = await loadPdfJs();
   const doc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   const pages = [];
-  for (let i=1; i<=doc.numPages; i++) {
+  for (let i = 1; i <= doc.numPages; i++) {
     const page = await doc.getPage(i);
-    const text = await page.getTextContent().catch(()=>null);
+    const viewport = page.getViewport({ scale: 1 });
+    const renderScale = (dpi / 72);
+    const renderViewport = page.getViewport({ scale: renderScale });
+    const canvas = document.createElement('canvas');
+    canvas.width = renderViewport.width | 0;
+    canvas.height = renderViewport.height | 0;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    await page.render({ canvasContext: ctx, viewport: renderViewport }).promise;
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.90));
+
+    const text = await page.getTextContent().catch(() => null);
     if (text?.items?.length) {
-      const viewport = page.getViewport({ scale: 1 });
       const items = text.items.map(it => ({
         text: it.str,
         bbox: rectFromTransform(it.transform, it.width, it.height, viewport.height),
         page: i
       }));
-      pages.push({ page: i, mode: 'text', items, width: viewport.width, height: viewport.height });
+      pages.push({ page: i, mode: 'text', items, blob, width: viewport.width, height: viewport.height });
     } else {
-      const scale = (dpi / 72);
-      const viewport = page.getViewport({ scale });
-      const canvas = document.createElement('canvas');
-      canvas.width = viewport.width | 0;
-      canvas.height = viewport.height | 0;
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      await page.render({ canvasContext: ctx, viewport }).promise;
-      const blob = await new Promise(r => canvas.toBlob(r, 'image/png', 0.92));
-      pages.push({ page: i, mode: 'image', blob, width: canvas.width, height: canvas.height });
+      pages.push({ page: i, mode: 'image', blob, width: viewport.width, height: viewport.height });
     }
   }
   return { numPages: doc.numPages, pages };

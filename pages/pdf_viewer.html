@@ -5,10 +5,22 @@
   body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, sans-serif; background:#111; color:#eee; }
   #c { position:relative; width:100vw; height:100vh; overflow:auto; }
   .page { position:relative; margin: 12px auto; background:#333; }
-  .layer { position:absolute; left:0; top:0; pointer-events:none; }
-  .block { position:absolute; background: rgba(0,0,0,.45); color:#fff; padding:2px 4px; border-radius:4px; font:14px/1.25 system-ui; text-shadow:0 1px 2px rgba(0,0,0,.5); }
-  .row { display:block; }
-  .tl { color:#b7e3ff; }
+  .block { 
+    position:absolute; 
+    z-index: 10;
+    pointer-events: auto;
+  }
+  .block:hover { z-index: 20; }
+  .tl-bubble { 
+    background: #fff; 
+    color: #0f172a; 
+    padding: 6px 12px; 
+    border-radius: 8px; 
+    font: 14px/1.5 system-ui, -apple-system, sans-serif; 
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    border: 1px solid rgba(0,0,0,0.08);
+    display: inline-block;
+  }
 </style>
 <div id="c"></div>
 <script type="module" src="pdf_viewer.js"></script>
