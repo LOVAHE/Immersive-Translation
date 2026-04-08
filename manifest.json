@@ -52,7 +52,8 @@
         "content/*.js",
         "pages/*.html",
         "options/*.html",
-        "tailwind.min.css"
+        "tailwind.min.css",
+        "vendor/*"
       ],
       "matches": ["<all_urls>"]
     }

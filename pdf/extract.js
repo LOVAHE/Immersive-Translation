@@ -36,9 +36,9 @@ function rectFromTransform(tr, w, h, pageHeight) {
 }
 
 async function loadPdfJs() {
-  const base = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4';
-  const workerUrl = `${base}/build/pdf.worker.min.mjs`;
-  const mainUrl = `${base}/build/pdf.min.mjs`;
+  const api = globalThis.chrome ?? globalThis.browser;
+  const workerUrl = api.runtime.getURL('vendor/pdf.worker.min.mjs');
+  const mainUrl = api.runtime.getURL('vendor/pdf.min.mjs');
   const mod = await import(/* @vite-ignore */ mainUrl);
   mod.GlobalWorkerOptions.workerSrc = workerUrl;
   return mod;

@@ -19,8 +19,13 @@ export async function ocrImageBlob(blob, langs = ['eng']) {
 async function getWorker() {
   if (workerPromise) return workerPromise;
   workerPromise = (async () => {
+    const api = globalThis.chrome ?? globalThis.browser;
     const Tesseract = await loadFromCdn();
-    const worker = await Tesseract.createWorker({ logger: ()=>{} });
+    const worker = await Tesseract.createWorker({
+      workerPath: api.runtime.getURL('vendor/worker.min.js'),
+      corePath: api.runtime.getURL('vendor/tesseract-core.wasm.js'),
+      logger: ()=>{}
+    });
     await worker.load();
     return worker;
   })();
@@ -28,7 +33,8 @@ async function getWorker() {
 }
 
 async function loadFromCdn() {
-  const url = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+  const api = globalThis.chrome ?? globalThis.browser;
+  const url = api.runtime.getURL('vendor/tesseract.min.js');
   const mod = await import(/* @vite-ignore */ url);
-  return mod;
+  return mod.default || mod;
 }

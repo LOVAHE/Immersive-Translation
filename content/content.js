@@ -17,8 +17,12 @@ async function getSettingsLite() {
 async function safeImport(path) {
   try { return await import(api.runtime.getURL(path)); }
   catch (e) {
-    try { await api.runtime.sendMessage({ action:'log', level:'error', scope:'content',
-      msg:`dynamic import failed: ${path}`, error:{ message:e?.message, stack:e?.stack } }); } catch {}
+    try {
+      await api.runtime.sendMessage({
+        action: 'log', level: 'error', scope: 'content',
+        msg: `dynamic import failed: ${path}`, error: { message: e?.message, stack: e?.stack }
+      });
+    } catch { }
     console.error('[IT][content] dynamic import failed:', path, e);
     throw e;
   }
@@ -68,37 +72,38 @@ async function safeImport(path) {
 
 // ---- dictionary bubble ----
 let bubble;
-function ensureBubble(){ if (bubble) return bubble;
+function ensureBubble() {
+  if (bubble) return bubble;
   bubble = document.createElement('div');
   bubble.style.cssText =
     'position:fixed;z-index:2147483647;max-width:360px;background:#fff;color:#222;border:1px solid #ddd;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.12);padding:12px;font:14px/1.45 system-ui;';
   document.body.appendChild(bubble); return bubble;
 }
-function placeBubble(){
+function placeBubble() {
   const sel = window.getSelection();
   const r = sel && sel.rangeCount ? sel.getRangeAt(0).getBoundingClientRect() : null;
   const x = (r?.left || 24), y = (r?.bottom || 24);
-  bubble.style.left = Math.min(x, window.innerWidth-380) + 'px';
-  bubble.style.top  = Math.min(y + 8, window.innerHeight-220) + 'px';
+  bubble.style.left = Math.min(x, window.innerWidth - 380) + 'px';
+  bubble.style.top = Math.min(y + 8, window.innerHeight - 220) + 'px';
 }
-function renderDictionaryBubble(dic){
+function renderDictionaryBubble(dic) {
   const b = ensureBubble(); placeBubble();
-  const { headword='', phonetic='', senses=[], synonyms=[] } = dic || {};
+  const { headword = '', phonetic = '', senses = [], synonyms = [] } = dic || {};
   b.innerHTML = `
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
-      <strong>${esc(headword)}</strong><span style="opacity:.7">${esc(phonetic||'')}</span>
+      <strong>${esc(headword)}</strong><span style="opacity:.7">${esc(phonetic || '')}</span>
       <button id="it-x" style="margin-left:auto;border:none;background:transparent;cursor:pointer">✕</button>
     </div>
-    ${(senses||[]).map(s=>`
+    ${(senses || []).map(s => `
       <div class="gloss">${esc(s.gloss_tl || s.gloss || '')}</div>
       ${s.examples?.length
-        ? `<div>${s.examples.slice(0,3).map(e=>`<div class="ex">• ${esc(e.src||'')}<br><span style="opacity:.75">（${esc(e.tgt||'')}）</span></div>`).join('')}</div>`
-        : ''
-      }
+      ? `<div>${s.examples.slice(0, 3).map(e => `<div class="ex">• ${esc(e.src || '')}<br><span style="opacity:.75">（${esc(e.tgt || '')}）</span></div>`).join('')}</div>`
+      : ''
+    }
     `).join('')}
-    ${synonyms?.length ? `<div style="margin-top:6px;opacity:.8">${esc(synonyms.join(', '))}</div>` : '' }
+    ${synonyms?.length ? `<div style="margin-top:6px;opacity:.8">${esc(synonyms.join(', '))}</div>` : ''}
   `;
-  b.querySelector('#it-x')?.addEventListener('click',()=>{ b.remove(); bubble=null; });
+  b.querySelector('#it-x')?.addEventListener('click', () => { b.remove(); bubble = null; });
 }
 
 // ---- inline rendering + think peek ----
@@ -107,7 +112,7 @@ function insertBelow(el, html, meta) {
   holder.className = 'it-inline-translation';
   holder.innerHTML = `${html}<span class="close">✕</span>`;
   el.after(holder);
-  holder.querySelector('.close')?.addEventListener('click',()=> holder.remove());
+  holder.querySelector('.close')?.addEventListener('click', () => holder.remove());
 
   const think = meta?.think;
   if (meta?.allowPeek && think && typeof think === 'string' && think.trim()) {
@@ -132,25 +137,61 @@ function toggleThinkPopover(holder, thinkText) {
   pop.style.left = (rect.left + window.scrollX + 12) + 'px';
   document.body.appendChild(pop);
 }
-function htmlForTargetOnly(tgt){ return `<div class="tgt">${esc(tgt)}</div>`; }
-function closestBlockFromRange(r){
+
+function renderSelectionPopup(r, text, meta) {
+  let pop = document.getElementById('it-selection-pop');
+  if (!pop) {
+    pop = document.createElement('div');
+    pop.id = 'it-selection-pop';
+    pop.style.cssText = 'position:absolute;z-index:2147483647;max-width:400px;min-width:200px;background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.12);padding:14px;font:14px/1.5 system-ui,-apple-system,sans-serif;color:#0f172a;';
+    document.body.appendChild(pop);
+  }
+  
+  const rect = r.getBoundingClientRect();
+  pop.style.left = Math.min(rect.left + window.scrollX, document.body.scrollWidth - 420) + 'px';
+  pop.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+  
+  const htmlObj = text.startsWith('<div') ? text : `<div>${esc(text)}</div>`; // basic wrapping
+  
+  pop.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+      <div style="flex-grow:1;color:#0f172a;">${htmlObj}</div>
+      <span class="close" style="cursor:pointer;opacity:0.4;font-size:14px;line-height:1;margin-top:2px;">✕</span>
+    </div>
+  `;
+  
+  pop.querySelector('.close')?.addEventListener('click', () => { pop.remove(); });
+
+  const think = meta?.think;
+  if (meta?.allowPeek && think && typeof think === 'string' && think.trim()) {
+    const b = document.createElement('button');
+    b.className = 'it-think-btn';
+    b.title = 'Show reasoning';
+    b.textContent = '🧠';
+    b.addEventListener('click', () => toggleThinkPopover(pop, think));
+    pop.prepend(b);
+  }
+}
+
+function htmlForTargetOnly(tgt) { return `<div class="tgt">${esc(tgt)}</div>`; }
+function closestBlockFromRange(r) {
   let el = r?.commonAncestorContainer;
   if (el?.nodeType === 3) el = el.parentElement;
   return el?.closest?.('p,li,blockquote,div,section,article,td,th,h1,h2,h3,h4,h5,h6') || el || document.body;
 }
 
 // ---- main-content detection ----
-const MAIN_POSITIVE = ['article','main','content','post','entry','story','read','body','page','text','rich','markdown'];
-const MAIN_NEGATIVE = ['nav','menu','footer','header','sidebar','aside','comment','related','promo','advert','share','subscribe','breadcrumb','recommend'];
+const MAIN_POSITIVE = ['article', 'main', 'content', 'post', 'entry', 'story', 'read', 'body', 'page', 'text', 'rich', 'markdown'];
+const MAIN_NEGATIVE = ['nav', 'menu', 'footer', 'header', 'sidebar', 'aside', 'comment', 'related', 'promo', 'advert', 'share', 'subscribe', 'breadcrumb', 'recommend'];
 
 function scoreNode(el) {
   if (!el || !el.tagName) return -1;
   const tag = el.tagName.toLowerCase();
   let s = 0;
   if (tag === 'article') s += 60;
-  if (tag === 'main')    s += 50;
+  if (tag === 'main') s += 50;
   if (tag === 'section') s += 8;
-  if (tag === 'div')     s += 3;
+  if (tag === 'div') s += 3;
   const role = (el.getAttribute('role') || '').toLowerCase();
   if (role === 'main') s += 40;
   if (el.getAttribute('itemprop')?.toLowerCase() === 'articlebody') s += 30;
@@ -159,26 +200,26 @@ function scoreNode(el) {
   for (const k of MAIN_POSITIVE) if (id.includes(k) || cls.includes(k)) s += 8;
   for (const k of MAIN_NEGATIVE) if (id.includes(k) || cls.includes(k)) s -= 15;
   const text = el.innerText || '';
-  const len = text.replace(/\s+/g,' ').length;
+  const len = text.replace(/\s+/g, ' ').length;
   const links = el.querySelectorAll('a').length;
-  s += Math.min(60, Math.floor(len/400));
-  s -= Math.min(30, links*1);
+  s += Math.min(60, Math.floor(len / 400));
+  s -= Math.min(30, links * 1);
   return s;
 }
 
 function pickMainRoot(doc = document) {
   const quick = doc.querySelector('article, main, [role="main"], [itemprop="articleBody"]');
-  if (quick && (quick.innerText||'').trim().length > 200) return quick;
+  if (quick && (quick.innerText || '').trim().length > 200) return quick;
 
   const candidates = Array.from(doc.querySelectorAll(
     'article, main, [role="main"], [itemprop="articleBody"],' +
     '#content, #main, #primary, .content, .main, .article, .post, .entry, .story, .article-body, .entry-content, .post-content, .content__body, .rich-text, .markdown-body'
   ));
   const bigBlocks = Array.from(doc.querySelectorAll('section,div'))
-    .filter(el => (el.innerText||'').trim().length > 500);
+    .filter(el => (el.innerText || '').trim().length > 500);
   for (const el of bigBlocks) if (!candidates.includes(el)) candidates.push(el);
 
-  let best=null, bestScore=-1;
+  let best = null, bestScore = -1;
   for (const el of candidates) {
     const sc = scoreNode(el);
     if (sc > bestScore) { best = el; bestScore = sc; }
@@ -194,14 +235,14 @@ function collectBlocks(root) {
     const txt = el.innerText.trim();
     if (txt.length < 2) return false;
     if (el.nextElementSibling?.classList?.contains('it-inline-translation')) return false;
-    const id = (el.id||'').toLowerCase(), cls=(el.className||'').toString().toLowerCase();
-    if (MAIN_NEGATIVE.some(k=>id.includes(k)||cls.includes(k))) return false;
+    const id = (el.id || '').toLowerCase(), cls = (el.className || '').toString().toLowerCase();
+    if (MAIN_NEGATIVE.some(k => id.includes(k) || cls.includes(k))) return false;
     return true;
   });
 }
 
 // ---- page translation ----
-async function translatePageInline(){
+async function translatePageInline() {
   const sLite = await getSettingsLite();
   const root = pickMainRoot(document);
   let blocks;
@@ -219,18 +260,18 @@ async function translatePageInline(){
 
   const CHUNK = 40;
   const SEP = '\n\u2063\u2063\u2063\n';
-  for (let i=0;i<blocks.length;i+=CHUNK){
-    const slice = blocks.slice(i, i+CHUNK);
+  for (let i = 0; i < blocks.length; i += CHUNK) {
+    const slice = blocks.slice(i, i + CHUNK);
     const srcs = slice.map(el => el.innerText.trim());
     const resp = await api.runtime.sendMessage({
-      action:'translateText',
+      action: 'translateText',
       text: srcs.join(SEP),
       targetLang: sLite.targetLang,
       intent: 'page'
-    }).catch(()=>null);
+    }).catch(() => null);
     if (!resp?.ok) continue;
     const parts = (resp.result?.translated || '').split(SEP);
-    slice.forEach((el, idx) => insertBelow(el, htmlForTargetOnly(parts[idx] || ''), { allowPeek:false }));
+    slice.forEach((el, idx) => insertBelow(el, htmlForTargetOnly(parts[idx] || ''), { allowPeek: false }));
   }
 }
 
@@ -241,17 +282,36 @@ api.runtime.onMessage.addListener(async (msg) => {
     if (mode === 'dictionary' && dictionary) { renderDictionaryBubble(dictionary); return; }
 
     const r = (getSelection() && getSelection().rangeCount) ? getSelection().getRangeAt(0) : null;
-    const block = r ? closestBlockFromRange(r) : document.activeElement || document.body;
-
     const sLite = await getSettingsLite();
     const allowPeek = !!sLite.showReasoningPeek;
+    const errorText = error ? `Error: ${error}` : null;
+    const html = errorText ? `Error: ${errorText}` : (translated || '');
 
-    if (error) insertBelow(block, htmlForTargetOnly(`Error: ${error}`), { think: null, allowPeek });
-    else insertBelow(block, htmlForTargetOnly(translated || ''), { think, allowPeek });
+    if (r) {
+      const block = closestBlockFromRange(r);
+      const selText = r.toString().trim().replace(/\s+/g, '');
+      const blockText = (block.innerText || '').trim().replace(/\s+/g, '');
+      
+      const isFullBlock = block && block !== document.body && 
+                          selText.length > 0 && 
+                          blockText.length > 0 && 
+                          (selText.length / blockText.length > 0.85);
+
+      if (isFullBlock) {
+        insertBelow(block, htmlForTargetOnly(html), { think, allowPeek });
+      } else {
+        renderSelectionPopup(r, errorText || translated || '', { think, allowPeek });
+      }
+      
+      window.getSelection()?.removeAllRanges();
+    } else {
+      const block = document.activeElement || document.body;
+      insertBelow(block, htmlForTargetOnly(html), { think, allowPeek });
+    }
   }
 
   if (msg?.action === 'translatePage') {
-    try { await translatePageInline(); } catch(e){ console.error('[inline] translatePage failed', e); }
+    try { await translatePageInline(); } catch (e) { console.error('[inline] translatePage failed', e); }
   }
 
   if (msg?.action === 'translateImageAtUrl' && msg.srcUrl) {
@@ -271,7 +331,7 @@ api.runtime.onMessage.addListener(async (msg) => {
   try {
     const mod = await safeImport('content/youtube.js');
     mod.initYouTubeOverlay();
-  } catch {}
+  } catch { }
 })();
 
-function esc(s=''){ return String(s).replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+function esc(s = '') { return String(s).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }

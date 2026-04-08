@@ -1,34 +1,125 @@
-<!doctype html>
-<html lang="en" class="h-full">
+<!DOCTYPE html>
+<html lang="en" class="h-full antialiased">
 <head>
   <meta charset="utf-8" />
-  <title>Settings</title>
-  <link rel="stylesheet" href="tailwind-pretty.min.css" />
-  <style>:root { color-scheme: light dark; } *:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; }</style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings - Immersive Translate</title>
+  
+  <!-- Tailwind CSS v4 Browser Compiler -->
+  <script src="tailwindcss-browser.js"></script>
+
+  <!-- Clean Minimalist Rose Theme -->
+  <style type="text/tailwindcss">
+    @theme {
+      --color-brand-500: #f43f5e; /* Rose 500 */
+      --color-brand-600: #e11d48; /* Rose 600 */
+      --color-brand-100: #ffe4e6; /* Rose 100 */
+      --color-brand-50:  #fff1f2; /* Rose 50 */
+    }
+    
+    :root {
+      color-scheme: light dark;
+    }
+    
+    body {
+      @apply bg-[#f4f4f5] dark:bg-[#0f0f11] text-slate-900 dark:text-slate-100; /* zinc-100 to off-black */
+    }
+
+    .clean-card {
+      @apply bg-white dark:bg-[#1a1a1c] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm;
+    }
+
+    .form-input {
+      @apply w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131315] px-4 py-2.5 text-sm font-medium text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all duration-200;
+    }
+
+    .form-input-select {
+      @apply appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_1rem_center] bg-[length:1.2em_1.2em] pr-10;
+    }
+
+    .btn-primary {
+      @apply px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2;
+    }
+
+    .btn-ghost {
+      @apply px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2;
+    }
+    
+    /* Toggle Switch Styling */
+    .toggle-peer:checked ~ .toggle-track {
+      @apply bg-brand-500;
+    }
+    .toggle-peer:checked ~ .toggle-knob {
+      @apply translate-x-5;
+    }
+
+    /* Tab Switch Logic */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.3s ease-out forwards; }
+    
+    .tab-btn {
+      @apply flex items-center gap-3 w-full px-4 py-2.5 text-sm font-medium rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/50 transition-colors text-left;
+    }
+    .tab-btn.active {
+      @apply bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-500 font-semibold;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 
-<body class="h-full bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100">
-  <main class="min-h-full">
-    <header class="sticky top-0 z-10">
-      <div class="h-1 bg-brand-gradient"></div>
-      <div class="backdrop-blur bg-slate-50/70 dark:bg-slate-900/70 border-b border-slate-200/60 dark:border-slate-700/60">
-        <div class="mx-auto max-w-4xl px-6 py-4">
-          <h1 class="text-xl font-semibold">Immersive Translate — <span data-i18n="btnSave">Settings</span></h1>
-          <p class="text-sm text-slate-500 dark:text-slate-400">Configure provider, languages, captions, OCR, prompts, and more.</p>
-        </div>
+<body class="flex flex-col md:flex-row h-screen overflow-hidden">
+  
+  <!-- Sidebar Navigation -->
+  <aside class="w-full md:w-64 flex-shrink-0 bg-white dark:bg-[#1a1a1c] border-r border-slate-200 dark:border-slate-800 h-auto md:h-full flex flex-col items-center md:items-stretch py-4 md:py-8 px-4 z-10 shadow-sm relative">
+    <div class="flex items-center gap-3 px-2 mb-2 md:mb-10 w-full justify-center md:justify-start">
+      <img src="../icons/icon128.png" alt="Immersive Translate" class="w-8 h-8 rounded-lg shadow-sm shrink-0" />
+      <div>
+        <h1 class="text-base md:text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-tight" data-i18n="settingsTitle">Immersive</h1>
+        <p class="text-xs text-slate-500 font-medium" data-i18n="settingsSubtitle">Settings</p>
       </div>
-    </header>
+    </div>
 
-    <div class="mx-auto max-w-4xl px-6 py-6 space-y-6">
+    <!-- Tabs Container -->
+    <nav class="flex md:flex-col gap-1 w-full overflow-x-auto md:overflow-visible pb-2 md:pb-0" id="tabs-nav">
+      <button class="tab-btn active" data-target="tab-general">
+        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        <span class="whitespace-nowrap" data-i18n="tabGeneral">General</span>
+      </button>
+      <button class="tab-btn" data-target="tab-apikeys">
+        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+        <span class="whitespace-nowrap" data-i18n="tabApiKeys">API Keys</span>
+      </button>
+      <button class="tab-btn" data-target="tab-advanced">
+        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+        <span class="whitespace-nowrap" data-i18n="tabAdvanced">Advanced</span>
+      </button>
+      <button class="tab-btn" data-target="tab-diagnostics">
+        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+        <span class="whitespace-nowrap" data-i18n="tabDiagnostics">Diagnostics</span>
+      </button>
+    </nav>
+  </aside>
 
-      <!-- General -->
-      <section class="rounded-2xl border border-slate-200/70 dark:border-slate-700/60 bg-white/70 dark:bg-slate-800 shadow-sm">
-        <div class="p-6">
-          <h2 class="text-lg font-semibold mb-4" data-i18n="optProvider">Provider</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <label class="block">
-              <span class="text-sm font-medium text-slate-700 dark:text-slate-200" data-i18n="optProvider">Provider</span>
-              <select id="provider" class="mt-1 w-full rounded-lg border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm">
+  <!-- Main Content Area -->
+  <main class="flex-1 overflow-y-auto relative">
+    <div class="max-w-3xl mx-auto px-6 py-8 md:py-12 pb-32">
+      
+      <!-- ================= GENERAL TAB ================= -->
+      <div id="tab-general" class="tab-content active space-y-6">
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white" data-i18n="tabGeneral">General</h2>
+          <p class="text-sm text-slate-500 mt-1" data-i18n="optProviderDesc">Configure translation provider and primary languages.</p>
+        </div>
+
+        <div class="clean-card p-6 space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <label class="block space-y-2">
+              <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="optProvider">Provider</span>
+              <select id="provider" class="form-input form-input-select">
                 <option value="openai">OpenAI</option>
                 <option value="google">Google Translate</option>
                 <option value="azure">Azure Translator</option>
@@ -37,14 +128,14 @@
               </select>
             </label>
 
-            <label class="block">
-              <span class="text-sm font-medium text-slate-700 dark:text-slate-200" data-i18n="optSourceLang">Source language</span>
-              <input id="sourceLang" placeholder="auto" class="mt-1 w-full rounded-lg border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm"/>
+            <label class="block space-y-2">
+              <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="optSourceLang">Source language</span>
+              <input id="sourceLang" placeholder="auto" class="form-input"/>
             </label>
 
-            <label class="block">
-              <span class="text-sm font-medium text-slate-700 dark:text-slate-200" data-i18n="optTargetLang">Target language</span>
-              <select id="targetLang" class="mt-1 w-full rounded-lg border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm">
+            <label class="block space-y-2">
+              <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="optTargetLang">Target language</span>
+              <select id="targetLang" class="form-input form-input-select">
                 <option value="zh">中文(zh)</option>
                 <option value="en">English(en)</option>
                 <option value="ja">日本語(ja)</option>
@@ -55,130 +146,164 @@
               </select>
             </label>
 
-            <label class="flex items-center gap-3 mt-1">
-              <input id="enableWordDictionary" type="checkbox" class="h-4 w-4 rounded border-slate-300 accent-indigo-600" />
-              <span class="text-sm text-slate-700 dark:text-slate-200" data-i18n="optEnableDict">Use dictionary mode for single words</span>
-            </label>
+            <div class="flex items-center pt-2 md:pt-8 md:pl-2">
+              <label class="flex items-center gap-3 cursor-pointer group">
+                <div class="relative flex items-center">
+                  <input id="enableWordDictionary" type="checkbox" class="sr-only toggle-peer" />
+                  <div class="toggle-track h-5 w-9 bg-slate-200 dark:bg-slate-700 rounded-full transition-colors duration-200 border border-slate-300 dark:border-slate-600"></div>
+                  <div class="toggle-knob absolute left-1 h-3.5 w-3.5 bg-white rounded-full transition-transform duration-200 shadow-sm border border-slate-200"></div>
+                </div>
+                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" data-i18n="optEnableDict">
+                  Use dictionary mode for single words
+                </span>
+              </label>
+            </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      <!-- Advanced -->
-      <section class="rounded-2xl border border-slate-200/70 dark:border-slate-700/60 bg-white/70 dark:bg-slate-800 shadow-sm">
-        <div class="p-6 space-y-6">
-          <details class="group open:shadow-none">
-            <summary class="cursor-pointer select-none text-lg font-semibold list-none flex items-center justify-between">
-              <span data-i18n="optAdvanced">Advanced</span>
-              <svg class="h-5 w-5 text-slate-500 transition-transform" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"/></svg>
-            </summary>
+      <!-- ================= API KEYS TAB ================= -->
+      <div id="tab-apikeys" class="tab-content space-y-6">
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white" data-i18n="tabApiKeys">API Keys & Endpoints</h2>
+          <p class="text-sm text-slate-500 mt-1" data-i18n="optApiKeysDesc">Configure your authentication keys and custom host URLs.</p>
+        </div>
 
-            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- UI language -->
-              <label class="block">
-                <span class="text-sm font-medium text-slate-700 dark:text-slate-200" data-i18n="optUILang">UI language</span>
-                <select id="uiLang" class="mt-1 w-full rounded-lg border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm">
-                  <option value="en">English(en)</option>
-                  <option value="zh">中文(zh)</option>
-                  <option value="ja">日本語(ja)</option>
-                  <option value="ko">한국어(ko)</option>
-                  <option value="fr">Français(fr)</option>
-                  <option value="de">Deutsch(de)</option>
-                  <option value="es">Español(es)</option>
+        <div class="clean-card p-6">
+          <!-- options.js will inject rows here securely -->
+          <div id="keys" class="flex flex-col gap-5"></div>
+        </div>
+      </div>
+
+      <!-- ================= ADVANCED TAB ================= -->
+      <div id="tab-advanced" class="tab-content space-y-6">
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white" data-i18n="tabAdvanced">Advanced Settings</h2>
+          <p class="text-sm text-slate-500 mt-1" data-i18n="optAdvancedDesc">Tweak OCR, UI language, and YouTube specific overlays.</p>
+        </div>
+
+        <div class="clean-card p-6 space-y-8">
+          <!-- UI Language -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-slate-100 dark:border-slate-800">
+            <label class="block space-y-2">
+              <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="optUILang">UI language</span>
+              <select id="uiLang" class="form-input form-input-select">
+                <option value="en">English(en)</option>
+                <option value="zh">中文(zh)</option>
+                <option value="ja">日本語(ja)</option>
+                <option value="ko">한국어(ko)</option>
+                <option value="fr">Français(fr)</option>
+                <option value="de">Deutsch(de)</option>
+                <option value="es">Español(es)</option>
+              </select>
+            </label>
+
+            <!-- Prompts Setting -->
+            <div class="pt-2 md:pt-7">
+              <button id="openPromptEditor" class="btn-ghost w-full" data-i18n="btnOpenPromptEditor">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                Edit LLM Prompts
+              </button>
+            </div>
+          </div>
+
+          <!-- OCR Section -->
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4" data-i18n="ocrHeader">OCR Settings</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="flex items-center">
+                <label class="flex items-center gap-3 cursor-pointer group">
+                  <div class="relative flex items-center">
+                    <input id="ocrEnabled" type="checkbox" class="sr-only toggle-peer" />
+                    <div class="toggle-track h-5 w-9 bg-slate-200 dark:bg-slate-700 rounded-full transition-colors duration-200 border border-slate-300 dark:border-slate-600"></div>
+                    <div class="toggle-knob absolute left-1 h-3.5 w-3.5 bg-white rounded-full transition-transform duration-200 shadow-sm border border-slate-200"></div>
+                  </div>
+                  <span class="text-sm font-medium text-slate-700 dark:text-slate-300" data-i18n="ocrEnable">Enable local OCR</span>
+                </label>
+              </div>
+
+              <div class="flex items-center">
+                <label class="flex items-center gap-3 cursor-pointer group">
+                  <div class="relative flex items-center">
+                    <input id="visionFallback" type="checkbox" class="sr-only toggle-peer" />
+                    <div class="toggle-track h-5 w-9 bg-slate-200 dark:bg-slate-700 rounded-full transition-colors duration-200 border border-slate-300 dark:border-slate-600"></div>
+                    <div class="toggle-knob absolute left-1 h-3.5 w-3.5 bg-white rounded-full transition-transform duration-200 shadow-sm border border-slate-200"></div>
+                  </div>
+                  <span class="text-sm font-medium text-slate-700 dark:text-slate-300" data-i18n="visionFallback">LLM Vision fallback</span>
+                </label>
+              </div>
+
+              <label class="block space-y-2 md:col-span-2">
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="ocrEngine">OCR engine</span>
+                <select id="ocrEngine" class="form-input form-input-select w-full md:w-1/2">
+                  <option value="tesseract" data-i18n="ocrEngineLocal">Local (Tesseract.js)</option>
+                  <option value="vision" data-i18n="ocrEngineVision">LLM Vision fallback only</option>
                 </select>
               </label>
 
-              <!-- LLM Prompts -->
-              <div class="col-span-1 md:col-span-2 rounded-xl border border-slate-200/70 dark:border-slate-700/60 p-4">
-                <h3 class="text-base font-semibold mb-2" data-i18n="promptHeader">LLM Prompts</h3>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mb-3" data-i18n="promptDesc">
-                  Customize prompts for OpenAI / Gemini dictionary & translation.
-                </p>
-                <button id="openPromptEditor" class="btn btn-ghost" data-i18n="btnOpenPromptEditor">Open Prompt Editor</button>
-              </div>
-
-              <!-- YouTube captions -->
-              <div class="col-span-1 md:col-span-2 rounded-xl border border-slate-200/70 dark:border-slate-700/60 p-4">
-                <h3 class="text-base font-semibold mb-3" data-i18n="ytHeader">YouTube captions</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <label class="block">
-                    <span class="text-sm font-medium text-slate-700 dark:text-slate-200" data-i18n="ytPrefLabel">Translation source priority</span>
-                    <select id="ytPrefer" class="mt-1 w-full rounded-lg border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm">
-                      <option value="builtin" data-i18n="ytPrefBuiltin">Prefer built-in</option>
-                      <option value="api" data-i18n="ytPrefApi">Prefer API</option>
-                    </select>
-                  </label>
-
-                  <label class="flex items-center gap-3">
-                    <input id="ytBilingualOverlay" type="checkbox" class="h-4 w-4 rounded border-slate-300 accent-indigo-600" />
-                    <span class="text-sm text-slate-700 dark:text-slate-200" data-i18n="ytBilingual">Enable bilingual overlay (original + translation)</span>
-                  </label>
-                </div>
-              </div>
-
-              <!-- OCR -->
-              <div class="col-span-1 md:col-span-2 rounded-xl border border-slate-200/70 dark:border-slate-700/60 p-4">
-                <h3 class="text-base font-semibold mb-3" data-i18n="ocrHeader">OCR</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <label class="flex items-center gap-3">
-                    <input id="ocrEnabled" type="checkbox" class="h-4 w-4 rounded border-slate-300 accent-indigo-600" />
-                    <span class="text-sm text-slate-700 dark:text-slate-200" data-i18n="ocrEnable">Enable local OCR (Tesseract.js)</span>
-                  </label>
-
-                  <label class="block">
-                    <span class="text-sm font-medium text-slate-700 dark:text-slate-200" data-i18n="ocrLangs">OCR languages (comma-separated, e.g. eng,chi_sim,jpn)</span>
-                    <input id="ocrLangs" class="mt-1 w-full rounded-lg border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm" />
-                  </label>
-
-                  <label class="block">
-                    <span class="text-sm font-medium text-slate-700 dark:text-slate-200" data-i18n="ocrEngine">OCR engine</span>
-                    <select id="ocrEngine" class="mt-1 w-full rounded-lg border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm">
-                      <option value="tesseract" data-i18n="ocrEngineLocal">Local (Tesseract.js)</option>
-                      <option value="vision" data-i18n="ocrEngineVision">LLM Vision fallback only</option>
-                    </select>
-                  </label>
-
-                  <label class="flex items-center gap-3">
-                    <input id="visionFallback" type="checkbox" class="h-4 w-4 rounded border-slate-300 accent-indigo-600" />
-                    <span class="text-sm text-slate-700 dark:text-slate-200" data-i18n="visionFallback">Use LLM Vision fallback if OCR fails</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-          </details>
-        </div>
-      </section>
-
-      <!-- Keys -->
-      <section class="rounded-2xl border border-slate-200/70 dark:border-slate-700/60 bg-white/70 dark:bg-slate-800 shadow-sm">
-        <div class="p-6">
-          <h2 class="text-lg font-semibold mb-4">Keys &amp; Endpoints</h2>
-          <!-- options.js will append labels/inputs here -->
-          <div id="keys" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-        </div>
-      </section>
-
-      <!-- Diagnostics -->
-      <section class="rounded-2xl border border-slate-200/60 dark:border-slate-700/60 bg-white/70 dark:bg-slate-800 shadow-sm">
-        <div class="p-6">
-          <h2 class="text-lg font-semibold mb-4">Diagnostics</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <label class="flex items-center gap-3">
-              <input id="debug" type="checkbox" class="h-4 w-4 accent-indigo-600" />
-              <span class="text-sm text-slate-700 dark:text-slate-200">Enable debug logs</span>
-            </label>
-            <div class="flex items-center gap-3">
-              <button id="btnSelfTest" class="btn btn-primary">Run provider self-test</button>
-              <button id="btnPing" class="btn btn-ghost">Ping background</button>
+              <label class="block space-y-2 md:col-span-2">
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="ocrLangs">Languages (comma-separated, eg: eng,chi_sim)</span>
+                <input id="ocrLangs" class="form-input w-full md:w-1/2" />
+              </label>
             </div>
           </div>
-          <pre id="diag" style="margin-top:12px;max-height:280px;overflow:auto;background:#0b1220;color:#e5e7eb;border-radius:12px;padding:12px;white-space:pre-wrap;"></pre>
-        </div>
-      </section>
 
-      <!-- Footer actions -->
-      <div class="flex items-center justify-end gap-3">
-        <button id="save" class="btn btn-primary" data-i18n="btnSave">Save</button>
+          <!-- YouTube Captions -->
+          <div class="pt-6 border-t border-slate-100 dark:border-slate-800">
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4" data-i18n="ytHeader">YouTube</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <label class="block space-y-2">
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="ytPrefLabel">Source Priority</span>
+                <select id="ytPrefer" class="form-input form-input-select">
+                  <option value="builtin" data-i18n="ytPrefBuiltin">Prefer built-in</option>
+                  <option value="api" data-i18n="ytPrefApi">Prefer API</option>
+                </select>
+              </label>
+
+              <div class="flex items-center pt-2 md:pt-7">
+                <label class="flex items-center gap-3 cursor-pointer group">
+                  <div class="relative flex items-center">
+                    <input id="ytBilingualOverlay" type="checkbox" class="sr-only toggle-peer" />
+                    <div class="toggle-track h-5 w-9 bg-slate-200 dark:bg-slate-700 rounded-full transition-colors duration-200 border border-slate-300 dark:border-slate-600"></div>
+                    <div class="toggle-knob absolute left-1 h-3.5 w-3.5 bg-white rounded-full transition-transform duration-200 shadow-sm border border-slate-200"></div>
+                  </div>
+                  <span class="text-sm font-medium text-slate-700 dark:text-slate-300" data-i18n="ytBilingual">Bilingual overlay</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
+
+      <!-- ================= DIAGNOSTICS TAB ================= -->
+      <div id="tab-diagnostics" class="tab-content space-y-6">
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white" data-i18n="tabDiagnostics">Diagnostics</h2>
+          <p class="text-sm text-slate-500 mt-1" data-i18n="optDiagnosticsDesc">Connectivity, logs, and self-testing.</p>
+        </div>
+
+        <div class="clean-card p-6">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
+            <label class="flex items-center gap-3 cursor-pointer group">
+              <div class="relative flex items-center">
+                <input id="debug" type="checkbox" class="sr-only toggle-peer" />
+                <div class="toggle-track h-5 w-9 bg-slate-200 dark:bg-slate-700 rounded-full transition-colors duration-200 border border-slate-300 dark:border-slate-600"></div>
+                <div class="toggle-knob absolute left-1 h-3.5 w-3.5 bg-white rounded-full transition-transform duration-200 shadow-sm border border-slate-200"></div>
+              </div>
+              <span class="text-sm font-medium text-slate-700 dark:text-slate-300" data-i18n="diagDebugLogs">Enable debug logs</span>
+            </label>
+            
+            <div class="flex items-center gap-3">
+              <button id="btnSelfTest" class="btn-primary" data-i18n="btnSelfTest">Provider self-test</button>
+              <button id="btnPing" class="btn-ghost" data-i18n="btnPing">Ping background</button>
+            </div>
+          </div>
+          
+          <pre id="diag" class="w-full bg-slate-50 dark:bg-[#0c0c0e] text-slate-800 dark:text-slate-300 font-mono text-xs p-4 rounded-xl max-h-[280px] overflow-auto border border-slate-200 dark:border-slate-800 empty:hidden"></pre>
+        </div>
+      </div>
+
     </div>
   </main>
 

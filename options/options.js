@@ -53,10 +53,10 @@ function renderKeysForm(s) {
   const frag = document.createDocumentFragment();
   const mkRow = (id, label, placeholder, value) => {
     const wrap = document.createElement('div');
-    wrap.className = 'rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-4 bg-white dark:bg-slate-900 shadow-sm';
+    wrap.className = 'block space-y-2';
     wrap.innerHTML = `
-      <label class="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-200" for="${id}">${label}</label>
-      <input id="${id}" class="w-full rounded-lg border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm"
+      <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300" for="${id}">${label}</label>
+      <input id="${id}" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131315] px-4 py-2.5 text-sm font-medium text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all duration-200"
              placeholder="${placeholder || ''}" value="${value ? String(value) : ''}">
     `;
     return wrap;
@@ -151,6 +151,26 @@ function attachDiagnostics() {
 }
 
 /* =========================
+   Tabs Logic
+   ========================= */
+function attachTabs() {
+  const btns = document.querySelectorAll('.tab-btn');
+  const tabs = document.querySelectorAll('.tab-content');
+
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => b.classList.remove('active'));
+      tabs.forEach(t => t.classList.remove('active'));
+      
+      btn.classList.add('active');
+      const targetId = btn.getAttribute('data-target');
+      const target = document.getElementById(targetId);
+      if (target) target.classList.add('active');
+    });
+  });
+}
+
+/* =========================
    Init page
    ========================= */
 (async function init() {
@@ -199,31 +219,36 @@ function attachDiagnostics() {
 
     attachDiagnostics();
 
-    // Save button
-    const saveBtn = $('save');
-    if (saveBtn) {
-      saveBtn.onclick = async () => {
+    attachTabs();
+
+    // Real-time Save Setup
+    let _saveTimeout;
+    const triggerSave = (e) => {
+      if (e.target && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') return;
+      clearTimeout(_saveTimeout);
+      _saveTimeout = setTimeout(async () => {
         try {
           const patch = readPatchFromForm();
           await setSettings(patch);
-
           await initI18n(patch.uiLang || 'en');
           applyI18n();
-
-          alert(t('btnSave') || 'Saved');
+          console.log('[options] auto-save OK');
         } catch (e) {
-          console.error('[options] save failed:', e);
-          alert('Save failed: ' + (e.message || String(e)));
+          console.error('[options] auto-save failed:', e);
         }
-      };
-    }
+      }, 400);
+    };
+
+    document.body.addEventListener('input', triggerSave);
+    document.body.addEventListener('change', triggerSave);
+
   } catch (err) {
     console.error('[options] init failed:', err);
     const keysDiv = $('keys');
     if (keysDiv) {
       keysDiv.innerHTML = `
-        <div class="rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-4 bg-white dark:bg-slate-900">
-          <div class="text-sm text-slate-700 dark:text-slate-200">Failed to load settings. See console for details.</div>
+        <div class="col-span-1 md:col-span-2 rounded-xl border border-red-200/60 dark:border-red-900/60 p-4 bg-red-50/50 dark:bg-red-900/20">
+          <div class="text-sm font-medium text-red-600 dark:text-red-400">Failed to load settings. See console for details.</div>
         </div>`;
     }
   }

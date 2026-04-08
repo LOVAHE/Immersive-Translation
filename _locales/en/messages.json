@@ -36,5 +36,19 @@
   "promptSystem": { "message": "System" },
   "promptUser": { "message": "User" },
   "btnOpenPromptEditor": { "message": "Open Prompt Editor" },
-  "btnReset": { "message": "Reset" }
+  "btnReset": { "message": "Reset" },
+
+  "tabGeneral": { "message": "General" },
+  "tabApiKeys": { "message": "API Keys" },
+  "tabAdvanced": { "message": "Advanced" },
+  "tabDiagnostics": { "message": "Diagnostics" },
+  "settingsTitle": { "message": "Immersive" },
+  "settingsSubtitle": { "message": "Settings" },
+  "optProviderDesc": { "message": "Configure translation provider and primary languages." },
+  "optApiKeysDesc": { "message": "Configure your authentication keys and custom host URLs." },
+  "optAdvancedDesc": { "message": "Tweak OCR, UI language, and YouTube specific overlays." },
+  "optDiagnosticsDesc": { "message": "Connectivity, logs, and self-testing." },
+  "diagDebugLogs": { "message": "Enable debug logs" },
+  "btnSelfTest": { "message": "Provider self-test" },
+  "btnPing": { "message": "Ping background" }
 }

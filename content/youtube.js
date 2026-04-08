@@ -48,11 +48,23 @@ function alignByTime(srcCues, tgtCues) {
 }
 async function providerTranslateCues(cues, targetLang) {
   const SEP = '\n\u2063\u2063\u2063\n';
-  const blob = cues.map(c=>c.text).join(SEP);
-  const resp = await (globalThis.chrome ?? globalThis.browser).runtime.sendMessage({ action:'translateText', text: blob, targetLang });
-  if (!resp?.ok) throw new Error(resp?.error || 'provider translate failed');
-  const parts = (resp.result?.translated || '').split(SEP);
-  return cues.map((c, i) => ({ start: c.start, end: c.end, text: parts[i] || '' }));
+  const CHUNK = 40;
+  let allParts = [];
+  
+  for (let i = 0; i < cues.length; i += CHUNK) {
+    const slice = cues.slice(i, i + CHUNK);
+    const blob = slice.map(c => c.text).join(SEP);
+    const resp = await (globalThis.chrome ?? globalThis.browser).runtime.sendMessage({ action:'translateText', text: blob, targetLang });
+    if (!resp?.ok) {
+      console.warn('[IT] YouTube chunk translation failed:', resp?.error);
+      allParts.push(...Array(slice.length).fill(''));
+      continue;
+    }
+    const parts = (resp.result?.translated || '').split(SEP);
+    allParts.push(...parts);
+  }
+  
+  return cues.map((c, i) => ({ start: c.start, end: c.end, text: allParts[i] || '' }));
 }
 function mountOverlay() {
   unmountOverlay();
@@ -91,8 +103,12 @@ function binarySearchCue(list, t) {
 }
 async function setupForCurrentVideo() {
   unmountOverlay();
-  const s = await getSettings(); const target = s.targetLang || 'zh'; const preferBuiltin = !!s.ytPreferBuiltIn;
-  const pr = getPlayerResponse(); const tracks = pr?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+  const s = await getSettings(); 
+  const target = s.targetLang || 'zh'; 
+  const preferBuiltin = s.ytPref !== 'api';
+  
+  const pr = getPlayerResponse(); 
+  const tracks = pr?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
   if (!tracks.length) return;
   const track = pickTrack(tracks);
   const srcData = await fetchJsonTrack(track.baseUrl); const srcCues = normalizeEvents(srcData.events);
