@@ -1,6 +1,6 @@
 [简体中文](README-zhcn.md)
 
-# Immersive Translate (V2)
+# Immersive Translate (V3)
 
 A modular, privacy-minded translation extension for Chromium browsers (Manifest V3). It adds **inline translations** (embedded under original text), a **dictionary bubble** for single words, optional **reasoning peek** (🧠) for LLMs that return chain-of-thought, **YouTube bilingual captions**, and **PDF/Image OCR → translate**—with **i18n** and a pluggable provider system.
 
