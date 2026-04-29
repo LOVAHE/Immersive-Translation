@@ -2,6 +2,14 @@
 
 const api = (globalThis.chrome ?? globalThis.browser);
 
+const TRANSLATION_STYLE_DEFAULTS = {
+  fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, sans-serif',
+  fontSize: '14px',
+  textColor: '#0f172a',
+  bubbleColor: '#ffffff',
+  borderColor: '#e2e8f0'
+};
+
 // ---- lightweight settings ----
 async function getSettingsLite() {
   const v = await api.storage.sync.get(null);
@@ -9,8 +17,47 @@ async function getSettingsLite() {
     targetLang: v.targetLang || 'zh',
     enableWordDictionary: !!v.enableWordDictionary,
     ytBilingualOverlay: !!v.ytBilingualOverlay,
-    showReasoningPeek: v.showReasoningPeek !== false // default: true
+    showReasoningPeek: v.showReasoningPeek !== false, // default: true
+    translationStyle: normalizeTranslationStyle(v)
   };
+}
+
+function normalizeColor(value, fallback) {
+  const s = String(value || '').trim();
+  return /^#[0-9a-f]{6}$/i.test(s) ? s : fallback;
+}
+
+function normalizeFontSize(value) {
+  const n = Number.parseInt(String(value || ''), 10);
+  if (!Number.isFinite(n)) return TRANSLATION_STYLE_DEFAULTS.fontSize;
+  return `${Math.min(28, Math.max(10, n))}px`;
+}
+
+function normalizeFontFamily(value) {
+  const s = String(value || '').replace(/[;"{}<>]/g, '').trim();
+  return s ? s.slice(0, 120) : TRANSLATION_STYLE_DEFAULTS.fontFamily;
+}
+
+function normalizeTranslationStyle(v = {}) {
+  return {
+    fontFamily: normalizeFontFamily(v.translationFontFamily),
+    fontSize: normalizeFontSize(v.translationFontSize),
+    textColor: normalizeColor(v.translationTextColor, TRANSLATION_STYLE_DEFAULTS.textColor),
+    bubbleColor: normalizeColor(v.translationBubbleColor, TRANSLATION_STYLE_DEFAULTS.bubbleColor),
+    borderColor: normalizeColor(v.translationBorderColor, TRANSLATION_STYLE_DEFAULTS.borderColor)
+  };
+}
+
+function applyTranslationStyle(el, style) {
+  if (!el) return;
+  const s = style || TRANSLATION_STYLE_DEFAULTS;
+  el.style.fontFamily = s.fontFamily;
+  el.style.fontSize = s.fontSize;
+  el.style.color = s.textColor;
+  el.style.backgroundColor = s.bubbleColor;
+  el.style.borderColor = s.borderColor;
+  const targets = el.querySelectorAll ? el.querySelectorAll('.tgt') : [];
+  targets.forEach(node => { node.style.color = s.textColor; });
 }
 
 // ---- safe dynamic import ----
@@ -86,7 +133,7 @@ function placeBubble() {
   bubble.style.left = Math.min(x, window.innerWidth - 380) + 'px';
   bubble.style.top = Math.min(y + 8, window.innerHeight - 220) + 'px';
 }
-function renderDictionaryBubble(dic) {
+function renderDictionaryBubble(dic, style) {
   const b = ensureBubble(); placeBubble();
   const { headword = '', phonetic = '', senses = [], synonyms = [] } = dic || {};
   b.innerHTML = `
@@ -103,14 +150,16 @@ function renderDictionaryBubble(dic) {
     `).join('')}
     ${synonyms?.length ? `<div style="margin-top:6px;opacity:.8">${esc(synonyms.join(', '))}</div>` : ''}
   `;
+  applyTranslationStyle(b, style);
   b.querySelector('#it-x')?.addEventListener('click', () => { b.remove(); bubble = null; });
 }
 
 // ---- inline rendering + think peek ----
-function insertBelow(el, html, meta) {
+function insertBelow(el, html, meta, style) {
   const holder = document.createElement('div');
   holder.className = 'it-inline-translation';
   holder.innerHTML = `${html}<span class="close">✕</span>`;
+  applyTranslationStyle(holder, style);
   el.after(holder);
   holder.querySelector('.close')?.addEventListener('click', () => holder.remove());
 
@@ -138,7 +187,7 @@ function toggleThinkPopover(holder, thinkText) {
   document.body.appendChild(pop);
 }
 
-function renderSelectionPopup(r, text, meta) {
+function renderSelectionPopup(r, text, meta, style) {
   let pop = document.getElementById('it-selection-pop');
   if (!pop) {
     pop = document.createElement('div');
@@ -159,6 +208,9 @@ function renderSelectionPopup(r, text, meta) {
       <span class="close" style="cursor:pointer;opacity:0.4;font-size:14px;line-height:1;margin-top:2px;">✕</span>
     </div>
   `;
+  applyTranslationStyle(pop, style);
+  const content = pop.querySelector('div > div');
+  if (content) content.style.color = style?.textColor || TRANSLATION_STYLE_DEFAULTS.textColor;
   
   pop.querySelector('.close')?.addEventListener('click', () => { pop.remove(); });
 
@@ -241,6 +293,19 @@ function collectBlocks(root) {
   });
 }
 
+function selectedBlocksFromRange(r) {
+  if (!r || r.collapsed) return [];
+  const blocks = collectBlocks(document.body);
+  return blocks.filter((el) => {
+    const nr = document.createRange();
+    nr.selectNodeContents(el);
+    const intersects = r.compareBoundaryPoints(Range.END_TO_START, nr) < 0 &&
+      r.compareBoundaryPoints(Range.START_TO_END, nr) > 0;
+    nr.detach?.();
+    return intersects;
+  });
+}
+
 // ---- page translation ----
 async function translatePageInline() {
   const sLite = await getSettingsLite();
@@ -271,7 +336,7 @@ async function translatePageInline() {
     }).catch(() => null);
     if (!resp?.ok) continue;
     const parts = (resp.result?.translated || '').split(SEP);
-    slice.forEach((el, idx) => insertBelow(el, htmlForTargetOnly(parts[idx] || ''), { allowPeek: false }));
+    slice.forEach((el, idx) => insertBelow(el, htmlForTargetOnly(parts[idx] || ''), { allowPeek: false }, sLite.translationStyle));
   }
 }
 
@@ -279,15 +344,35 @@ async function translatePageInline() {
 api.runtime.onMessage.addListener(async (msg) => {
   if (msg?.action === 'showTranslation') {
     const { error, dictionary, translated, mode, think } = msg.result || {};
-    if (mode === 'dictionary' && dictionary) { renderDictionaryBubble(dictionary); return; }
+    const sLite = await getSettingsLite();
+    if (mode === 'dictionary' && dictionary) { renderDictionaryBubble(dictionary, sLite.translationStyle); return; }
 
     const r = (getSelection() && getSelection().rangeCount) ? getSelection().getRangeAt(0) : null;
-    const sLite = await getSettingsLite();
     const allowPeek = !!sLite.showReasoningPeek;
     const errorText = error ? `Error: ${error}` : null;
     const html = errorText ? `Error: ${errorText}` : (translated || '');
 
     if (r) {
+      const selectedBlocks = selectedBlocksFromRange(r);
+      if (selectedBlocks.length > 1) {
+        const SEP = '\n\u2063\u2063\u2063\n';
+        const srcs = selectedBlocks.map(el => el.innerText.trim()).filter(Boolean);
+        if (srcs.length > 1) {
+          const multiResp = await api.runtime.sendMessage({
+            action: 'translateText',
+            text: srcs.join(SEP),
+            targetLang: sLite.targetLang,
+            intent: 'selection'
+          }).catch(() => null);
+          if (multiResp?.ok) {
+            const parts = (multiResp.result?.translated || '').split(SEP);
+            selectedBlocks.forEach((el, idx) => insertBelow(el, htmlForTargetOnly(parts[idx] || ''), { think, allowPeek }, sLite.translationStyle));
+            window.getSelection()?.removeAllRanges();
+            return;
+          }
+        }
+      }
+
       const block = closestBlockFromRange(r);
       const selText = r.toString().trim().replace(/\s+/g, '');
       const blockText = (block.innerText || '').trim().replace(/\s+/g, '');
@@ -298,15 +383,15 @@ api.runtime.onMessage.addListener(async (msg) => {
                           (selText.length / blockText.length > 0.85);
 
       if (isFullBlock) {
-        insertBelow(block, htmlForTargetOnly(html), { think, allowPeek });
+        insertBelow(block, htmlForTargetOnly(html), { think, allowPeek }, sLite.translationStyle);
       } else {
-        renderSelectionPopup(r, errorText || translated || '', { think, allowPeek });
+        renderSelectionPopup(r, errorText || translated || '', { think, allowPeek }, sLite.translationStyle);
       }
       
       window.getSelection()?.removeAllRanges();
     } else {
       const block = document.activeElement || document.body;
-      insertBelow(block, htmlForTargetOnly(html), { think, allowPeek });
+      insertBelow(block, htmlForTargetOnly(html), { think, allowPeek }, sLite.translationStyle);
     }
   }
 
