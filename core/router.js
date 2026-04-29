@@ -2,20 +2,25 @@ import { getSettings } from './settings.js';
 import { getProvider } from '../providers/index.js';
 import { classifyText } from './textKind.js';
 import { createLogger } from './log.js';
+import { api } from './browser.js';
 
 const L = createLogger('router');
 const OFFSCREEN_DOCUMENT_PATH = '/offscreen/offscreen.html';
 
 async function handleChromeAiRequest(action, payload) {
+  if (!api.offscreen?.createDocument || !api.runtime?.getContexts) {
+    throw new Error('Chrome AI local provider is only available in Chrome.');
+  }
+
   // Find the offscreen document.
-  const existingContexts = await chrome.runtime.getContexts({
+  const existingContexts = await api.runtime.getContexts({
     contextTypes: ['OFFSCREEN_DOCUMENT'],
-    documentUrls: [chrome.runtime.getURL(OFFSCREEN_DOCUMENT_PATH)]
+    documentUrls: [api.runtime.getURL(OFFSCREEN_DOCUMENT_PATH)]
   });
 
   if (!existingContexts.length) {
     L.info('Creating offscreen document');
-    await chrome.offscreen.createDocument({
+    await api.offscreen.createDocument({
       url: OFFSCREEN_DOCUMENT_PATH,
       reasons: ['USER_ACTION'],
       justification: 'The Chrome AI API (Gemini Nano) is only available in a document context.',
@@ -23,7 +28,7 @@ async function handleChromeAiRequest(action, payload) {
   }
 
   L.info('Sending request to offscreen document', { action });
-  const response = await chrome.runtime.sendMessage({
+  const response = await api.runtime.sendMessage({
     target: 'offscreen',
     action: action,
     details: payload
