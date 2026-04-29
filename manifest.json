@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Immersive Translate (Cross-Browser)",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "default_locale": "en",
   "description": "Modular translation with inline rendering, dictionary mode, YouTube captions, PDF/Image OCR, i18n, and pluggable providers (OpenAI/Gemini/Azure).",
   "permissions": [
