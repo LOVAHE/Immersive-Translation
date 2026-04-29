@@ -1,9 +1,8 @@
-import { api } from './browser.js';
+import { api, callApi } from './browser.js';
 
-export function createContextMenus(items) {
-  api.contextMenus.removeAll(() => {
-    items.forEach(item => api.contextMenus.create(item));
-  });
+export async function createContextMenus(items) {
+  await callApi(api.contextMenus.removeAll.bind(api.contextMenus));
+  items.forEach(item => api.contextMenus.create(item));
 }
 
 export async function withTimeout(promise, ms = 25000) {
