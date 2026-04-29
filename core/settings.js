@@ -1,3 +1,5 @@
+import { api, callApi } from './browser.js';
+
 const DEFAULTS = {
   provider: 'openai',
   targetLang: 'zh',
@@ -13,6 +15,12 @@ const DEFAULTS = {
   ocrEngine: 'tesseract',
   ocrLangs: 'eng',
   visionFallback: true,
+
+  translationFontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, sans-serif',
+  translationFontSize: '14',
+  translationTextColor: '#0f172a',
+  translationBubbleColor: '#ffffff',
+  translationBorderColor: '#e2e8f0',
 
   googleApiKey: '',
   azureKey: '',
@@ -31,13 +39,9 @@ const DEFAULTS = {
 };
 
 export async function getSettings() {
-  return new Promise(resolve => {
-    (chrome ?? browser).storage.sync.get(DEFAULTS, resolve);
-  });
+  return callApi(api.storage.sync.get.bind(api.storage.sync), DEFAULTS);
 }
 
 export async function setSettings(patch) {
-  return new Promise(resolve => {
-    (chrome ?? browser).storage.sync.set(patch, resolve);
-  });
+  return callApi(api.storage.sync.set.bind(api.storage.sync), patch);
 }
