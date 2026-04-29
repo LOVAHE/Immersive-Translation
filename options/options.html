@@ -5,70 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Settings - Immersive Translate</title>
   
-  <!-- Tailwind CSS v4 Browser Compiler -->
-  <script src="tailwindcss-browser.js"></script>
-
-  <!-- Clean Minimalist Rose Theme -->
-  <style type="text/tailwindcss">
-    @theme {
-      --color-brand-500: #f43f5e; /* Rose 500 */
-      --color-brand-600: #e11d48; /* Rose 600 */
-      --color-brand-100: #ffe4e6; /* Rose 100 */
-      --color-brand-50:  #fff1f2; /* Rose 50 */
-    }
-    
-    :root {
-      color-scheme: light dark;
-    }
-    
-    body {
-      @apply bg-[#f4f4f5] dark:bg-[#0f0f11] text-slate-900 dark:text-slate-100; /* zinc-100 to off-black */
-    }
-
-    .clean-card {
-      @apply bg-white dark:bg-[#1a1a1c] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm;
-    }
-
-    .form-input {
-      @apply w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131315] px-4 py-2.5 text-sm font-medium text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all duration-200;
-    }
-
-    .form-input-select {
-      @apply appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_1rem_center] bg-[length:1.2em_1.2em] pr-10;
-    }
-
-    .btn-primary {
-      @apply px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2;
-    }
-
-    .btn-ghost {
-      @apply px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2;
-    }
-    
-    /* Toggle Switch Styling */
-    .toggle-peer:checked ~ .toggle-track {
-      @apply bg-brand-500;
-    }
-    .toggle-peer:checked ~ .toggle-knob {
-      @apply translate-x-5;
-    }
-
-    /* Tab Switch Logic */
-    .tab-content { display: none; }
-    .tab-content.active { display: block; animation: fadeIn 0.3s ease-out forwards; }
-    
-    .tab-btn {
-      @apply flex items-center gap-3 w-full px-4 py-2.5 text-sm font-medium rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/50 transition-colors text-left;
-    }
-    .tab-btn.active {
-      @apply bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-500 font-semibold;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+  <link rel="stylesheet" href="options.css">
 </head>
 
 <body class="flex flex-col md:flex-row h-screen overflow-hidden">
@@ -92,6 +29,10 @@
       <button class="tab-btn" data-target="tab-apikeys">
         <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
         <span class="whitespace-nowrap" data-i18n="tabApiKeys">API Keys</span>
+      </button>
+      <button class="tab-btn" data-target="tab-style">
+        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828L8.343 21M7 17h.01"></path></svg>
+        <span class="whitespace-nowrap" data-i18n="tabStyle">Style</span>
       </button>
       <button class="tab-btn" data-target="tab-advanced">
         <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
@@ -157,6 +98,60 @@
                   Use dictionary mode for single words
                 </span>
               </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= STYLE TAB ================= -->
+      <div id="tab-style" class="tab-content space-y-6">
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white" data-i18n="tabStyle">Style</h2>
+          <p class="text-sm text-slate-500 mt-1" data-i18n="optStyleDesc">Customize translation bubble typography and colors.</p>
+        </div>
+
+        <div class="clean-card p-6 space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <label class="block space-y-2 md:col-span-2">
+              <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="styleFontFamily">Font family</span>
+              <input id="translationFontFamily" class="form-input" placeholder="system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, sans-serif" />
+            </label>
+
+            <label class="block space-y-2">
+              <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="styleFontSize">Font size</span>
+              <input id="translationFontSize" type="number" min="10" max="28" step="1" class="form-input" />
+            </label>
+
+            <label class="block space-y-2">
+              <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="styleTextColor">Text color</span>
+              <div class="flex items-center gap-3">
+                <input id="translationTextColor" type="color" class="color-input" />
+                <input id="translationTextColorText" class="form-input" maxlength="7" placeholder="#0f172a" />
+              </div>
+            </label>
+
+            <label class="block space-y-2">
+              <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="styleBubbleColor">Bubble color</span>
+              <div class="flex items-center gap-3">
+                <input id="translationBubbleColor" type="color" class="color-input" />
+                <input id="translationBubbleColorText" class="form-input" maxlength="7" placeholder="#ffffff" />
+              </div>
+            </label>
+
+            <label class="block space-y-2">
+              <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="styleBorderColor">Border color</span>
+              <div class="flex items-center gap-3">
+                <input id="translationBorderColor" type="color" class="color-input" />
+                <input id="translationBorderColorText" class="form-input" maxlength="7" placeholder="#e2e8f0" />
+              </div>
+            </label>
+          </div>
+
+          <div class="pt-6 border-t border-slate-100 dark:border-slate-800">
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4" data-i18n="stylePreviewTitle">Preview</h3>
+            <div id="stylePreview" class="rounded-xl border p-4 shadow-sm">
+              <div class="font-semibold mb-1" data-i18n="stylePreviewText">Translated text will look like this.</div>
+              <div class="opacity-75" data-i18n="stylePreviewSample">Hello, Immersive Translation.</div>
             </div>
           </div>
         </div>
