@@ -33,6 +33,14 @@ const KEY_PLACEHOLDER = {
   geminiModel:   'gemini-2.5-flash'
 };
 
+const STYLE_DEFAULTS = {
+  translationFontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, sans-serif',
+  translationFontSize: '14',
+  translationTextColor: '#0f172a',
+  translationBubbleColor: '#ffffff',
+  translationBorderColor: '#e2e8f0'
+};
+
 /* =========================
    Helpers & i18n
    ========================= */
@@ -73,6 +81,65 @@ function renderKeysForm(s) {
   keysDiv.appendChild(frag);
 }
 
+function isHexColor(value) {
+  return /^#[0-9a-f]{6}$/i.test(String(value || '').trim());
+}
+
+function colorValue(id) {
+  const text = $(`${id}Text`)?.value;
+  const picker = $(id)?.value;
+  return isHexColor(text) ? text : (isHexColor(picker) ? picker : STYLE_DEFAULTS[id]);
+}
+
+function syncColorPair(id, value) {
+  const fallback = STYLE_DEFAULTS[id];
+  const next = isHexColor(value) ? value : fallback;
+  const picker = $(id);
+  const text = $(`${id}Text`);
+  if (picker) picker.value = next;
+  if (text) text.value = next;
+}
+
+function readStylePatchFromForm() {
+  const fontSize = Math.min(28, Math.max(10, Number($('translationFontSize')?.value || STYLE_DEFAULTS.translationFontSize)));
+  return {
+    translationFontFamily: $('translationFontFamily')?.value?.trim() || STYLE_DEFAULTS.translationFontFamily,
+    translationFontSize: String(Number.isFinite(fontSize) ? fontSize : STYLE_DEFAULTS.translationFontSize),
+    translationTextColor: colorValue('translationTextColor'),
+    translationBubbleColor: colorValue('translationBubbleColor'),
+    translationBorderColor: colorValue('translationBorderColor')
+  };
+}
+
+function updateStylePreview() {
+  const preview = $('stylePreview');
+  if (!preview) return;
+  const style = readStylePatchFromForm();
+  preview.style.fontFamily = style.translationFontFamily;
+  preview.style.fontSize = `${style.translationFontSize}px`;
+  preview.style.color = style.translationTextColor;
+  preview.style.backgroundColor = style.translationBubbleColor;
+  preview.style.borderColor = style.translationBorderColor;
+}
+
+function attachStyleControls() {
+  ['translationTextColor', 'translationBubbleColor', 'translationBorderColor'].forEach(id => {
+    const picker = $(id);
+    const text = $(`${id}Text`);
+    picker?.addEventListener('input', () => {
+      if (text) text.value = picker.value;
+      updateStylePreview();
+    });
+    text?.addEventListener('input', () => {
+      if (isHexColor(text.value) && picker) picker.value = text.value;
+      updateStylePreview();
+    });
+  });
+  ['translationFontFamily', 'translationFontSize'].forEach(id => {
+    $(id)?.addEventListener('input', updateStylePreview);
+  });
+}
+
 /* =========================
    Read / write settings
    ========================= */
@@ -100,6 +167,8 @@ function readPatchFromForm() {
 
     debug: pickBool('debug')
   };
+
+  Object.assign(patch, readStylePatchFromForm());
 
   keyFields.forEach(k => { patch[k] = pick(k); });
 
@@ -204,6 +273,14 @@ function attachTabs() {
     setVal('targetLang', s.targetLang || 'zh');
     setChk('enableWordDictionary', !!s.enableWordDictionary);
 
+    setVal('translationFontFamily', s.translationFontFamily || STYLE_DEFAULTS.translationFontFamily);
+    setVal('translationFontSize', s.translationFontSize || STYLE_DEFAULTS.translationFontSize);
+    syncColorPair('translationTextColor', s.translationTextColor || STYLE_DEFAULTS.translationTextColor);
+    syncColorPair('translationBubbleColor', s.translationBubbleColor || STYLE_DEFAULTS.translationBubbleColor);
+    syncColorPair('translationBorderColor', s.translationBorderColor || STYLE_DEFAULTS.translationBorderColor);
+    attachStyleControls();
+    updateStylePreview();
+
     setVal('uiLang', s.uiLang || 'en');
     setVal('ytPrefer', s.ytPreferBuiltIn ? 'builtin' : 'api');
     setChk('ytBilingualOverlay', !!s.ytBilingualOverlay);
@@ -232,6 +309,7 @@ function attachTabs() {
           await setSettings(patch);
           await initI18n(patch.uiLang || 'en');
           applyI18n();
+          updateStylePreview();
           console.log('[options] auto-save OK');
         } catch (e) {
           console.error('[options] auto-save failed:', e);
