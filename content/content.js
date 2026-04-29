@@ -241,6 +241,19 @@ function collectBlocks(root) {
   });
 }
 
+function selectedBlocksFromRange(r) {
+  if (!r || r.collapsed) return [];
+  const blocks = collectBlocks(document.body);
+  return blocks.filter((el) => {
+    const nr = document.createRange();
+    nr.selectNodeContents(el);
+    const intersects = r.compareBoundaryPoints(Range.END_TO_START, nr) < 0 &&
+      r.compareBoundaryPoints(Range.START_TO_END, nr) > 0;
+    nr.detach?.();
+    return intersects;
+  });
+}
+
 // ---- page translation ----
 async function translatePageInline() {
   const sLite = await getSettingsLite();
@@ -288,6 +301,26 @@ api.runtime.onMessage.addListener(async (msg) => {
     const html = errorText ? `Error: ${errorText}` : (translated || '');
 
     if (r) {
+      const selectedBlocks = selectedBlocksFromRange(r);
+      if (selectedBlocks.length > 1) {
+        const SEP = '\n\u2063\u2063\u2063\n';
+        const srcs = selectedBlocks.map(el => el.innerText.trim()).filter(Boolean);
+        if (srcs.length > 1) {
+          const multiResp = await api.runtime.sendMessage({
+            action: 'translateText',
+            text: srcs.join(SEP),
+            targetLang: sLite.targetLang,
+            intent: 'selection'
+          }).catch(() => null);
+          if (multiResp?.ok) {
+            const parts = (multiResp.result?.translated || '').split(SEP);
+            selectedBlocks.forEach((el, idx) => insertBelow(el, htmlForTargetOnly(parts[idx] || ''), { think, allowPeek }));
+            window.getSelection()?.removeAllRanges();
+            return;
+          }
+        }
+      }
+
       const block = closestBlockFromRange(r);
       const selText = r.toString().trim().replace(/\s+/g, '');
       const blockText = (block.innerText || '').trim().replace(/\s+/g, '');
