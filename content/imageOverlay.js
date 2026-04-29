@@ -1,6 +1,8 @@
 import { getSettings } from '../core/settings.js';
 import { ocrImageBlob } from '../ocr/tesseract.js';
 
+const api = globalThis.browser ?? globalThis.chrome;
+
 export async function translateImageFromUrl(imgUrl) {
   const s = await getSettings();
   if (!s.ocrEnabled && s.ocrEngine === 'tesseract') throw new Error('OCR disabled');
@@ -25,14 +27,14 @@ export async function translateImageFromUrl(imgUrl) {
     const lines = clusterLines(words);
     const SEP = '\n\u2063\u2063\u2063\n';
     const payload = lines.map(l => l.text).join(SEP);
-    const resp2 = await chrome.runtime.sendMessage({ action:'translateText', text: payload, targetLang: s.targetLang });
+    const resp2 = await api.runtime.sendMessage({ action:'translateText', text: payload, targetLang: s.targetLang });
     if (!resp2?.ok) throw new Error(resp2?.error || 'translate failed');
     const translatedParts = (resp2.result?.translated || '').split(SEP);
     resultItems = lines.map((l, i) => ({ bbox: l.bbox, src: l.text, tgt: translatedParts[i] || '' }));
   } else if (s.visionFallback) {
     const reader = new FileReader();
     const dataUrl = await new Promise(r => { reader.onload = () => r(reader.result); reader.readAsDataURL(blob); });
-    const response = await chrome.runtime.sendMessage({
+    const response = await api.runtime.sendMessage({
       action: 'visionTranslate',
       details: { imageDataUrl: dataUrl, targetLang: s.targetLang }
     });
