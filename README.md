@@ -1,180 +1,82 @@
-[简体中文](README-zhcn.md)
+[English](README.md) | [简体中文](README-zhcn.md)
 
-# Adaptive Translation V3.0.1
+# Immersive Translation v3.0.1
 
-Adaptive Translation is a privacy-minded browser extension for inline translation. It can translate selected text, translate full pages paragraph by paragraph, show dictionary bubbles for single words, customize translation bubble styles, and optionally translate captions, images, and PDFs with user-selected providers.
+Immersive Translation is a browser extension for inline translation and bilingual reading. It focuses on translating content in-place (instead of redirecting to external pages) and supports multiple providers, OCR, YouTube subtitles, and dictionary-style word explanations.
 
-The extension is designed as a modular WebExtension project with separate Chrome and Firefox release manifests.
+## What this project does
 
----
+- Translate selected text from the context menu.
+- Translate full web pages block-by-block and render bilingual content inline.
+- Show dictionary-style explanations when a selection looks like a single word.
+- Translate YouTube subtitles with optional bilingual overlay.
+- Translate text in images and PDF files via OCR (Tesseract.js) and provider APIs.
+- Let users switch translation providers and tune prompts/styles in the options page.
 
-## Features
+## Core capabilities
 
-- **Selection translation**: translate selected text from the context menu.
-- **Inline page translation**: insert translations below original paragraphs, list items, headings, and other readable text blocks.
-- **Dictionary bubble**: show a learner-friendly dictionary entry when a selection looks like a single word.
-- **Custom styles**: configure translation font, font size, text color, bubble color, and border color.
-- **YouTube captions**: optional bilingual caption overlay with built-in/API priority.
-- **Image and PDF translation**: local OCR with bundled Tesseract.js, with optional vision-provider fallback.
-- **Prompt editor**: customize LLM system/user prompts for translation and dictionary mode.
-- **Provider adapters**: OpenAI, Gemini, Google Translate, Azure Translator, DeepL, and Chrome AI where available.
-- **Internationalized UI**: English, Chinese, Japanese, Korean, French, German, and Spanish.
-- **Diagnostics**: debug logging, background ping, and provider self-test.
+### 1) Inline web translation
+The extension injects content scripts and inserts translated text directly below paragraphs, list items, and headings while keeping the original page structure.
 
----
+### 2) Multi-provider architecture
+Provider adapters are modular and currently include:
 
-## Privacy Model
+- OpenAI
+- Gemini
+- Google Translate
+- Azure Translator
+- DeepL
+- Chrome built-in AI (when available)
 
-Adaptive Translation does not collect, record, sell, or upload user data to servers controlled by the extension developer.
+### 3) OCR and PDF support
+- `ocr/tesseract.js` provides local OCR integration.
+- `pdf/extract.js` and `pages/pdf_viewer.*` handle PDF text extraction/preview workflows.
+- Bundled assets in `vendor/` avoid runtime CDN dependency for OCR/PDF engines.
 
-Content is processed only when the user triggers a translation feature or enables a related feature such as caption translation. Depending on the selected provider, selected text, page text, OCR content, image/PDF content, or captions may be sent directly from the extension to the third-party translation provider configured by the user.
+### 4) YouTube subtitle translation
+`content/youtube.js` provides subtitle detection, translation, and bilingual rendering logic.
 
-API keys and preferences are stored with browser extension storage and are used only to call the provider selected by the user. Users should review the privacy policies and terms of the third-party providers they choose.
+### 5) Options and customization
+Users can configure:
 
-See [PRIVACY_POLICY_DRAFT.md](docs/chrome-web-store/PRIVACY_POLICY_DRAFT.md) for the current store-facing privacy policy draft.
+- provider, source/target language
+- dictionary mode behavior
+- translation bubble style (font, size, colors)
+- custom prompts
+- OCR and subtitle behavior
 
----
-
-## Supported Providers
-
-- **OpenAI**: chat completions and vision-capable translation flows.
-- **Gemini**: text, dictionary JSON, and vision-capable translation flows.
-- **Google Translate**: text translation.
-- **Azure Translator**: text translation.
-- **DeepL**: text translation.
-- **Chrome AI**: local Chrome AI provider where the browser exposes the required APIs. This is Chrome-only and not advertised for Firefox builds.
-
-Providers are implemented in `providers/`, with shared prompt helpers in `prompts/`.
-
----
-
-## Settings
-
-### General
-
-- Translation provider
-- Source language
-- Target language
-- Dictionary mode for single-word selections
-
-### Style
-
-- Font family
-- Font size
-- Text color
-- Bubble background color
-- Border color
-- Live preview
-
-### Advanced
-
-- UI language
-- Prompt editor
-- OCR settings
-- YouTube caption preferences
-- Debug logging and diagnostics
-
----
-
-## Development Install
-
-### Chrome / Chromium
-
-1. Open `chrome://extensions`.
-2. Enable **Developer mode**.
-3. Click **Load unpacked**.
-4. Select this project folder.
-5. Open the extension options page and configure a provider.
-
-### Firefox
-
-1. Open `about:debugging#/runtime/this-firefox`.
-2. Click **Load Temporary Add-on**.
-3. Select `manifest.firefox.json` or a packaged Firefox build manifest.
-
-For AMO packaging, use the build script described below.
-
----
-
-## Packaging
-
-Generated files are written to `dist/`. Do not commit `dist/` to source control.
-
-### Firefox AMO Package
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\tools\build-firefox.ps1
-```
-
-This creates a timestamped `.xpi` under `dist/`.
-
-### AMO Source Package
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\tools\build-amo-source.ps1
-```
-
-This creates a source archive for Mozilla review. It includes source files, bundled dependencies, manifests, build scripts, and `SOURCE_BUILD_INSTRUCTIONS.md`, but excludes generated `dist/` artifacts.
-
-### Chrome Web Store Package
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\tools\build-chrome.ps1
-```
-
-This creates a Chrome upload zip using `manifest.chrome.json`.
-
----
-
-## Store Manifests
-
-- `manifest.json`: original cross-browser development manifest.
-- `manifest.chrome.json`: Chrome Web Store release manifest.
-- `manifest.firefox.json`: Firefox AMO release manifest.
-
-Firefox packaging uses `background.scripts`. Chrome packaging uses `background.service_worker`.
-
----
-
-## Project Layout
+## Project structure
 
 ```text
-background.js             Extension background entry
-content/                  Page translation, image overlay, YouTube overlay
-core/                     Browser API, settings, routing, i18n, logging
-options/                  Options UI and prompt editor
-providers/                Translation provider adapters
-prompts/                  Shared prompt builders
-ocr/                      OCR integration
+background.js             Background event orchestration
+content/                  Page translation / image overlay / YouTube logic
+core/                     Settings, browser wrappers, i18n, utils, logging
+providers/                Provider adapters and routing
+options/                  Extension options UI and prompt editor
+prompts/                  Shared prompt templates/helpers
+ocr/                      OCR pipeline
 pdf/                      PDF extraction helpers
-vendor/                   Bundled PDF.js and Tesseract.js assets
-_locales/                 Browser extension localization files
-tools/                    Release packaging scripts
-docs/                     Store listing, privacy, and review notes
+pages/                    Internal extension pages (PDF viewer)
+vendor/                   Bundled third-party runtime assets
+_locales/                 I18n message catalogs
 ```
 
----
+## Install for development
 
-## Internationalization
+1. Open `chrome://extensions` (or the equivalent extension debug page in your browser).
+2. Enable Developer Mode.
+3. Click “Load unpacked”.
+4. Select this repository folder.
+5. Open extension options and configure at least one translation provider.
 
-Included locales:
+## Privacy notes
 
-```text
-en, zh, ja, ko, fr, de, es
-```
+- This project does not include a backend service operated by the repository owner.
+- Translation requests are sent directly from the extension to the provider selected by the user.
+- API keys and user settings are stored in browser extension storage.
 
-To add a locale, create `_locales/<lang>/messages.json` with the same message keys.
-
----
-
-## Notes For Reviewers
-
-PDF.js and Tesseract.js are bundled locally for PDF parsing and OCR. They are not downloaded from a remote host at runtime.
-
-Dynamic `import()` is used to load extension-bundled modules via `browser.runtime.getURL(...)` / `chrome.runtime.getURL(...)` when the user triggers image, PDF, OCR, or YouTube-related features.
-
----
+See also: [PRIVACY_POLICY.md](PRIVACY_POLICY.md).
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0. See [LICENSE](LICENSE).
+GNU General Public License v3.0. See [LICENSE](LICENSE).

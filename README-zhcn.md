@@ -1,180 +1,82 @@
-# 自适应翻译(v3.0.1)
+[English](README.md) | [简体中文](README-zhcn.md)
 
-[English](README.md)
+# 沉浸式翻译扩展 v3.0.1
 
-自适应翻译是一个注重隐私的浏览器内嵌翻译扩展。它支持划词翻译、整页逐段翻译、单词词典气泡、翻译气泡样式自定义，并可选支持 YouTube 字幕、图片和 PDF 的 OCR/视觉翻译。
+这是一个用于浏览器的沉浸式翻译扩展，核心目标是“就地双语阅读”：在网页原文附近直接插入译文，而不是跳转到外部翻译页面。项目同时支持多翻译服务、图片/PDF OCR、YouTube 字幕翻译和词典式释义。
 
-项目采用模块化 WebExtension 结构，并提供 Chrome 与 Firefox 的独立上架 manifest。
+## 项目主要用途
 
----
+- 右键划词翻译选中文本。
+- 整页逐块翻译，并以内嵌方式显示双语内容。
+- 当选中内容像单词时，显示词典式解释。
+- 翻译 YouTube 字幕，并可显示双语字幕层。
+- 通过 OCR 与翻译服务处理图片和 PDF 中的文字。
+- 在选项页中自定义 Provider、提示词、样式和行为。
 
-## 功能特性
+## 核心能力说明
 
-- **划词翻译**：通过右键菜单翻译选中文本。
-- **整页内嵌翻译**：将译文插入到原文段落、列表、标题等文本块下方。
-- **词典气泡**：当选中内容像单个单词时，显示学习型词典结果。
-- **样式自定义**：可设置字体、字号、文字颜色、气泡颜色和边框颜色。
-- **YouTube 字幕**：可选双语字幕覆盖，并支持内置字幕/API 翻译优先级。
-- **图片与 PDF 翻译**：使用内置 Tesseract.js 做本地 OCR，并可选使用支持视觉能力的 provider 兜底。
-- **提示词编辑器**：可自定义 LLM 翻译和词典模式的 System/User 提示词。
-- **多 provider 支持**：OpenAI、Gemini、Google Translate、Azure Translator、DeepL，以及可用时的 Chrome AI。
-- **多语言 UI**：英文、中文、日文、韩文、法文、德文、西班牙文。
-- **诊断工具**：调试日志、后台 Ping、provider 自检。
+### 1）网页内嵌翻译
+扩展通过内容脚本对页面文本块（段落、列表、标题等）进行处理，把译文插入在原文附近，尽可能保持原页面阅读体验。
 
----
+### 2）多 Provider 架构
+当前实现了模块化 Provider 适配器，包含：
 
-## 隐私模型
+- OpenAI
+- Gemini
+- Google Translate
+- Azure Translator
+- DeepL
+- Chrome 内置 AI（在可用环境下）
 
-自适应翻译不会收集、记录、出售用户数据，也不会把用户数据上传到扩展开发者控制的服务器。
+### 3）OCR 与 PDF 支持
+- `ocr/tesseract.js`：本地 OCR 集成。
+- `pdf/extract.js` 与 `pages/pdf_viewer.*`：PDF 文本提取和页面处理。
+- `vendor/`：打包了 OCR/PDF 相关运行时资源，减少运行时外部依赖。
 
-只有当用户主动触发翻译功能，或启用了字幕翻译等相关功能时，内容才会被处理。根据用户选择的 provider，选中文本、网页文本、OCR 内容、图片/PDF 内容或字幕可能会直接从扩展发送给用户配置的第三方翻译服务。
+### 4）YouTube 字幕翻译
+`content/youtube.js` 负责字幕检测、翻译与双语渲染逻辑。
 
-API Key 和偏好设置存储在浏览器扩展存储中，只用于调用用户选择的 provider。用户应自行查看所选第三方 provider 的隐私政策和服务条款。
+### 5）选项与可定制能力
+可配置内容包括：
 
-当前上架用隐私政策草稿见：[PRIVACY_POLICY_DRAFT.md](docs/chrome-web-store/PRIVACY_POLICY_DRAFT.md)。
-
----
-
-## 支持的 Provider
-
-- **OpenAI**：文本翻译、词典模式和视觉相关翻译流程。
-- **Gemini**：文本翻译、词典 JSON 和视觉相关翻译流程。
-- **Google Translate**：文本翻译。
-- **Azure Translator**：文本翻译。
-- **DeepL**：文本翻译。
-- **Chrome AI**：浏览器提供相关 API 时可用，仅 Chrome 支持，不作为 Firefox 版卖点。
-
-Provider 位于 `providers/`，共享提示词逻辑位于 `prompts/`。
-
----
-
-## 设置项
-
-### 通用
-
-- 翻译 provider
-- 源语言
-- 目标语言
-- 单词选择时启用词典模式
-
-### 样式
-
-- 字体
-- 字号
-- 文字颜色
-- 气泡背景颜色
-- 边框颜色
-- 实时预览
-
-### 高级
-
-- UI 语言
-- 提示词编辑器
-- OCR 设置
-- YouTube 字幕设置
-- 调试日志和诊断
-
----
-
-## 开发模式安装
-
-### Chrome / Chromium
-
-1. 打开 `chrome://extensions`。
-2. 启用 **开发者模式**。
-3. 点击 **加载已解压的扩展程序**。
-4. 选择本项目目录。
-5. 打开扩展选项页，配置 provider。
-
-### Firefox
-
-1. 打开 `about:debugging#/runtime/this-firefox`。
-2. 点击 **Load Temporary Add-on**。
-3. 选择 `manifest.firefox.json`，或选择已打包 Firefox 构建中的 manifest。
-
-正式 AMO 打包请使用下面的脚本。
-
----
-
-## 打包
-
-生成文件会写入 `dist/`。不要把 `dist/` 提交到源码仓库。
-
-### Firefox AMO 安装包
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\tools\build-firefox.ps1
-```
-
-会在 `dist/` 下生成带时间戳的 `.xpi`。
-
-### AMO 源码审核包
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\tools\build-amo-source.ps1
-```
-
-会生成供 Mozilla 审核使用的源码包，包含源码、vendor、manifest、构建脚本和 `SOURCE_BUILD_INSTRUCTIONS.md`，但不包含生成的 `dist/` 产物。
-
-### Chrome Web Store 安装包
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\tools\build-chrome.ps1
-```
-
-会使用 `manifest.chrome.json` 生成 Chrome 上传 zip。
-
----
-
-## 上架 Manifest
-
-- `manifest.json`：原始跨浏览器开发 manifest。
-- `manifest.chrome.json`：Chrome Web Store 上架 manifest。
-- `manifest.firefox.json`：Firefox AMO 上架 manifest。
-
-Firefox 包使用 `background.scripts`。Chrome 包使用 `background.service_worker`。
-
----
+- Provider、源语言、目标语言
+- 单词词典模式行为
+- 翻译气泡样式（字体、字号、颜色）
+- 自定义提示词
+- OCR 与字幕相关行为
 
 ## 项目结构
 
 ```text
-background.js             扩展后台入口
-content/                  页面翻译、图片覆盖、YouTube 覆盖
-core/                     浏览器 API、设置、路由、i18n、日志
-options/                  设置页和提示词编辑器
-providers/                翻译 provider 适配器
-prompts/                  共享提示词构建逻辑
-ocr/                      OCR 集成
+background.js             后台事件与任务调度
+content/                  网页翻译 / 图片覆盖 / YouTube 逻辑
+core/                     设置、浏览器封装、i18n、工具与日志
+providers/                各翻译服务适配器与路由
+options/                  选项页与提示词编辑器
+prompts/                  公共提示词模板与辅助逻辑
+ocr/                      OCR 流程
 pdf/                      PDF 提取辅助逻辑
-vendor/                   打包的 PDF.js 和 Tesseract.js 资源
-_locales/                 浏览器扩展多语言文件
-tools/                    发布打包脚本
-docs/                     商店文案、隐私政策和审核说明
+pages/                    扩展内部页面（如 PDF viewer）
+vendor/                   打包的第三方运行时资源
+_locales/                 多语言文案
 ```
 
----
+## 开发安装方式
 
-## 国际化
+1. 打开 `chrome://extensions`（或浏览器对应扩展调试页）。
+2. 启用开发者模式。
+3. 点击“加载已解压的扩展程序”。
+4. 选择本仓库目录。
+5. 打开扩展选项页，至少配置一个翻译 Provider。
 
-已包含语言：
+## 隐私说明
 
-```text
-en, zh, ja, ko, fr, de, es
-```
+- 本项目本身不提供由仓库作者运营的在线后端。
+- 翻译请求由扩展直接发送到用户选择的第三方 Provider。
+- API Key 与用户设置保存在浏览器扩展存储中。
 
-如需新增语言，请创建 `_locales/<lang>/messages.json` 并保持同样的 message keys。
-
----
-
-## 审核说明
-
-PDF.js 和 Tesseract.js 已作为本地依赖打包，用于 PDF 解析和 OCR。扩展运行时不会从远程地址下载这些代码。
-
-动态 `import()` 仅用于在用户触发图片、PDF、OCR 或 YouTube 相关功能时，通过 `browser.runtime.getURL(...)` / `chrome.runtime.getURL(...)` 加载扩展内置模块。
-
----
+详见：[PRIVACY_POLICY.md](PRIVACY_POLICY.md)。
 
 ## 许可证
 
-本项目使用 GNU General Public License v3.0。详见 [LICENSE](LICENSE)。
+GNU General Public License v3.0，详见 [LICENSE](LICENSE)。
