@@ -1,6 +1,6 @@
 [简体中文](README-zhcn.md)
 
-# Adaptive Translation V3.0.1
+# Adaptive Translation V3.1.0
 
 Adaptive Translation is a privacy-minded browser extension for inline translation. It can translate selected text, translate full pages paragraph by paragraph, show dictionary bubbles for single words, customize translation bubble styles, and optionally translate captions, images, and PDFs with user-selected providers.
 
