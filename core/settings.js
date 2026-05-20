@@ -18,6 +18,7 @@ const DEFAULTS = {
 
   translationFontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, sans-serif',
   translationFontSize: '14',
+  translationThemeMode: 'auto',
   translationTextColor: '#0f172a',
   translationBubbleColor: '#ffffff',
   translationBorderColor: '#e2e8f0',
