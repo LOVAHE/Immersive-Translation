@@ -1,5 +1,5 @@
 import { getSettings } from '../core/settings.js';
-const api = (globalThis.chrome ?? globalThis.browser);
+const api = (globalThis.browser ?? globalThis.chrome);
 
 let rafId = 0, overlay, currentCues = [], lastIdx = -1;
 const NAV_EVENT = 'yt-navigate-finish';
@@ -54,7 +54,7 @@ async function providerTranslateCues(cues, targetLang) {
   for (let i = 0; i < cues.length; i += CHUNK) {
     const slice = cues.slice(i, i + CHUNK);
     const blob = slice.map(c => c.text).join(SEP);
-    const resp = await (globalThis.chrome ?? globalThis.browser).runtime.sendMessage({ action:'translateText', text: blob, targetLang });
+    const resp = await api.runtime.sendMessage({ action:'translateText', text: blob, targetLang });
     if (!resp?.ok) {
       console.warn('[IT] YouTube chunk translation failed:', resp?.error);
       allParts.push(...Array(slice.length).fill(''));
@@ -81,7 +81,7 @@ function renderCue(cue) {
     <div style="color:#b7e3ff;font-size:18px;line-height:1.25;margin-top:2px;">${escapeHTML(cue.tgt)}</div>
   </div>`;
 }
-function escapeHTML(s=''){ return s.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+function escapeHTML(s=''){ return String(s).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
 function startTicker() {
   const video = document.querySelector('video.html5-main-video') || document.querySelector('video');
   if (!video) return;
@@ -91,7 +91,7 @@ function startTicker() {
     let idx = lastIdx;
     if (idx < 0 || t < currentCues[idx]?.start || t > currentCues[idx]?.end) idx = binarySearchCue(currentCues, t);
     if (idx !== lastIdx && idx >= 0 && idx < n) { lastIdx = idx; renderCue(currentCues[idx]); }
-    requestAnimationFrame(step);
+    rafId = requestAnimationFrame(step);
   };
   step();
 }
@@ -105,7 +105,7 @@ async function setupForCurrentVideo() {
   unmountOverlay();
   const s = await getSettings(); 
   const target = s.targetLang || 'zh'; 
-  const preferBuiltin = s.ytPref !== 'api';
+  const preferBuiltin = s.ytPreferBuiltIn !== false;
   
   const pr = getPlayerResponse(); 
   const tracks = pr?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
