@@ -4,7 +4,7 @@ import { getSettings, setSettings } from '../core/settings.js';
 import { initI18n, t } from '../core/i18n.js';
 import { ChromeAiTranslate } from '../providers/chromeAi.js';
 
-const api = (globalThis.chrome ?? globalThis.browser);
+const api = (globalThis.browser ?? globalThis.chrome);
 
 const keyFields = [
   'googleApiKey',
@@ -36,9 +36,15 @@ const KEY_PLACEHOLDER = {
 const STYLE_DEFAULTS = {
   translationFontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, sans-serif',
   translationFontSize: '14',
+  translationThemeMode: 'auto',
   translationTextColor: '#0f172a',
   translationBubbleColor: '#ffffff',
   translationBorderColor: '#e2e8f0'
+};
+const MIN_TEXT_CONTRAST = 4.5;
+const PRESET_THEMES = {
+  light: { textColor: '#0f172a', bubbleColor: '#ffffff', borderColor: '#e2e8f0' },
+  dark: { textColor: '#e5edf5', bubbleColor: '#111827', borderColor: '#334155' }
 };
 
 /* =========================
@@ -53,6 +59,19 @@ function applyI18n(root = document) {
   });
 }
 
+function errorMessage(err) {
+  return err?.message || String(err || 'Unknown error');
+}
+
+function escHtml(value = '') {
+  return String(value).replace(/[&<>"]/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;'
+  }[ch]));
+}
+
 function renderKeysForm(s) {
   const keysDiv = $('keys');
   if (!keysDiv) return;
@@ -62,10 +81,11 @@ function renderKeysForm(s) {
   const mkRow = (id, label, placeholder, value) => {
     const wrap = document.createElement('div');
     wrap.className = 'block space-y-2';
+    const safeId = escHtml(id);
     wrap.innerHTML = `
-      <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300" for="${id}">${label}</label>
-      <input id="${id}" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131315] px-4 py-2.5 text-sm font-medium text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all duration-200"
-             placeholder="${placeholder || ''}" value="${value ? String(value) : ''}">
+      <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300" for="${safeId}">${escHtml(label)}</label>
+      <input id="${safeId}" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131315] px-4 py-2.5 text-sm font-medium text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all duration-200"
+             placeholder="${escHtml(placeholder || '')}" value="${escHtml(value ? String(value) : '')}">
     `;
     return wrap;
   };
@@ -100,11 +120,89 @@ function syncColorPair(id, value) {
   if (text) text.value = next;
 }
 
+function hexToRgb(hex) {
+  const m = /^#([0-9a-f]{6})$/i.exec(String(hex || '').trim());
+  if (!m) return null;
+  const n = Number.parseInt(m[1], 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function relativeLuminance(hex) {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return null;
+  const channel = (value) => {
+    const n = value / 255;
+    return n <= 0.03928 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * channel(rgb.r) + 0.7152 * channel(rgb.g) + 0.0722 * channel(rgb.b);
+}
+
+function contrastRatio(a, b) {
+  const l1 = relativeLuminance(a);
+  const l2 = relativeLuminance(b);
+  if (l1 == null || l2 == null) return Number.POSITIVE_INFINITY;
+  const high = Math.max(l1, l2);
+  const low = Math.min(l1, l2);
+  return (high + 0.05) / (low + 0.05);
+}
+
+function readableTextColor(textColor, bubbleColor) {
+  if (contrastRatio(textColor, bubbleColor) >= MIN_TEXT_CONTRAST) return textColor;
+  const dark = '#111827';
+  const light = '#f8fafc';
+  return contrastRatio(light, bubbleColor) >= contrastRatio(dark, bubbleColor) ? light : dark;
+}
+
+function safeThemeMode(value) {
+  return ['auto', 'light', 'dark', 'custom'].includes(value) ? value : STYLE_DEFAULTS.translationThemeMode;
+}
+
+function hasCustomStyleColors(s = {}) {
+  return [
+    ['translationTextColor', STYLE_DEFAULTS.translationTextColor],
+    ['translationBubbleColor', STYLE_DEFAULTS.translationBubbleColor],
+    ['translationBorderColor', STYLE_DEFAULTS.translationBorderColor]
+  ].some(([key, fallback]) => isHexColor(s[key]) && String(s[key]).toLowerCase() !== fallback.toLowerCase());
+}
+
+function pageLooksDark() {
+  const bg = getComputedStyle(document.body).backgroundColor;
+  const match = /rgba?\((\d+),\s*(\d+),\s*(\d+)/i.exec(bg);
+  if (!match) return false;
+  const hex = `#${[match[1], match[2], match[3]].map(n => Number(n).toString(16).padStart(2, '0')).join('')}`;
+  const lum = relativeLuminance(hex);
+  return lum != null && lum < 0.45;
+}
+
+function resolvePreviewColors(style) {
+  const mode = safeThemeMode(style.translationThemeMode);
+  if (mode === 'custom') {
+    return {
+      textColor: readableTextColor(style.translationTextColor, style.translationBubbleColor),
+      bubbleColor: style.translationBubbleColor,
+      borderColor: style.translationBorderColor
+    };
+  }
+  const preset = mode === 'dark' || (mode === 'auto' && pageLooksDark()) ? PRESET_THEMES.dark : PRESET_THEMES.light;
+  return preset;
+}
+
+function updateStyleControlsState() {
+  const custom = safeThemeMode($('translationThemeMode')?.value) === 'custom';
+  ['translationTextColor', 'translationTextColorText', 'translationBubbleColor', 'translationBubbleColorText', 'translationBorderColor', 'translationBorderColorText'].forEach(id => {
+    const el = $(id);
+    if (!el) return;
+    el.disabled = !custom;
+    el.style.opacity = custom ? '1' : '.55';
+  });
+}
+
 function readStylePatchFromForm() {
   const fontSize = Math.min(28, Math.max(10, Number($('translationFontSize')?.value || STYLE_DEFAULTS.translationFontSize)));
   return {
     translationFontFamily: $('translationFontFamily')?.value?.trim() || STYLE_DEFAULTS.translationFontFamily,
     translationFontSize: String(Number.isFinite(fontSize) ? fontSize : STYLE_DEFAULTS.translationFontSize),
+    translationThemeMode: safeThemeMode($('translationThemeMode')?.value || STYLE_DEFAULTS.translationThemeMode),
     translationTextColor: colorValue('translationTextColor'),
     translationBubbleColor: colorValue('translationBubbleColor'),
     translationBorderColor: colorValue('translationBorderColor')
@@ -115,11 +213,13 @@ function updateStylePreview() {
   const preview = $('stylePreview');
   if (!preview) return;
   const style = readStylePatchFromForm();
+  const colors = resolvePreviewColors(style);
+  updateStyleControlsState();
   preview.style.fontFamily = style.translationFontFamily;
   preview.style.fontSize = `${style.translationFontSize}px`;
-  preview.style.color = style.translationTextColor;
-  preview.style.backgroundColor = style.translationBubbleColor;
-  preview.style.borderColor = style.translationBorderColor;
+  preview.style.color = colors.textColor;
+  preview.style.backgroundColor = colors.bubbleColor;
+  preview.style.borderColor = colors.borderColor;
 }
 
 function attachStyleControls() {
@@ -135,7 +235,7 @@ function attachStyleControls() {
       updateStylePreview();
     });
   });
-  ['translationFontFamily', 'translationFontSize'].forEach(id => {
+  ['translationFontFamily', 'translationFontSize', 'translationThemeMode'].forEach(id => {
     $(id)?.addEventListener('input', updateStylePreview);
   });
 }
@@ -213,7 +313,7 @@ function attachDiagnostics() {
   const btnPE = $('openPromptEditor');
   if (btnPE) {
     btnPE.onclick = () => {
-      const url = (chrome ?? browser).runtime.getURL('options/prompts.html');
+      const url = api.runtime.getURL('options/prompts.html');
       window.open(url, '_blank');
     };
   }
@@ -227,6 +327,8 @@ function attachTabs() {
   const tabs = document.querySelectorAll('.tab-content');
 
   btns.forEach(btn => {
+    if (btn.dataset.tabsBound === 'true') return;
+    btn.dataset.tabsBound = 'true';
     btn.addEventListener('click', () => {
       btns.forEach(b => b.classList.remove('active'));
       tabs.forEach(t => t.classList.remove('active'));
@@ -243,24 +345,29 @@ function attachTabs() {
    Init page
    ========================= */
 (async function init() {
+  attachTabs();
+
   try {
     const s = await getSettings();
 
     await initI18n(s.uiLang || 'en');
     applyI18n();
 
-    // Add Chrome AI provider if available
-    const chromeAiStatus = await ChromeAiTranslate.getAvailability();
-    if (chromeAiStatus !== 'unavailable') {
+    try {
+      const chromeAiStatus = await ChromeAiTranslate.getAvailability();
       const providerSelect = $('provider');
-      const opt = document.createElement('option');
-      opt.value = 'chrome-ai';
-      opt.textContent = 'Chrome AI (Local)';
-      if (chromeAiStatus === 'downloading') {
-        opt.textContent += ' (downloading...)';
-        opt.disabled = true;
+      if (chromeAiStatus !== 'unavailable' && providerSelect) {
+        const opt = document.createElement('option');
+        opt.value = 'chrome-ai';
+        opt.textContent = 'Chrome AI (Local)';
+        if (chromeAiStatus === 'downloading') {
+          opt.textContent += ' (downloading...)';
+          opt.disabled = true;
+        }
+        providerSelect.appendChild(opt);
       }
-      providerSelect.appendChild(opt);
+    } catch (err) {
+      console.warn('[options] Chrome AI availability check skipped:', err);
     }
 
     document.querySelector('#provider option[value="openai-compat"]')?.remove();
@@ -275,6 +382,10 @@ function attachTabs() {
 
     setVal('translationFontFamily', s.translationFontFamily || STYLE_DEFAULTS.translationFontFamily);
     setVal('translationFontSize', s.translationFontSize || STYLE_DEFAULTS.translationFontSize);
+    const initialThemeMode = s.translationThemeMode === 'auto' && hasCustomStyleColors(s)
+      ? 'custom'
+      : (s.translationThemeMode || STYLE_DEFAULTS.translationThemeMode);
+    setVal('translationThemeMode', initialThemeMode);
     syncColorPair('translationTextColor', s.translationTextColor || STYLE_DEFAULTS.translationTextColor);
     syncColorPair('translationBubbleColor', s.translationBubbleColor || STYLE_DEFAULTS.translationBubbleColor);
     syncColorPair('translationBorderColor', s.translationBorderColor || STYLE_DEFAULTS.translationBorderColor);
@@ -295,8 +406,6 @@ function attachTabs() {
     renderKeysForm(s);
 
     attachDiagnostics();
-
-    attachTabs();
 
     // Real-time Save Setup
     let _saveTimeout;
@@ -324,9 +433,10 @@ function attachTabs() {
     console.error('[options] init failed:', err);
     const keysDiv = $('keys');
     if (keysDiv) {
+      const msg = errorMessage(err);
       keysDiv.innerHTML = `
         <div class="col-span-1 md:col-span-2 rounded-xl border border-red-200/60 dark:border-red-900/60 p-4 bg-red-50/50 dark:bg-red-900/20">
-          <div class="text-sm font-medium text-red-600 dark:text-red-400">Failed to load settings. See console for details.</div>
+          <div class="text-sm font-medium text-red-600 dark:text-red-400">Failed to load settings: ${escHtml(msg)}</div>
         </div>`;
     }
   }
