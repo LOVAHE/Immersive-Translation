@@ -28,8 +28,8 @@ function applyI18n(root=document){ root.querySelectorAll('[data-i18n]').forEach(
     const demoT = buildTranslatePrompt({ text:'Hello', targetLang:'zh' });
     const demoD = buildDictionaryPrompt({ text:'apple', targetLang:'zh' });
     el('openaiPromptTranslateSystem').value = demoT.systemText;
-    el('openaiPromptTranslateUser').value   = demoT.userText.replace(/---[\\s\\S]*$/,'---\\n');
+    el('openaiPromptTranslateUser').value   = demoT.userText.replace(/---[\s\S]*$/,'---\n');
     el('openaiPromptDictSystem').value      = demoD.systemText;
-    el('openaiPromptDictUser').value        = demoD.userText.replace(/WORD:[\\s\\S]*/,'WORD:\\nTARGET:\\nSOURCE:');
+    el('openaiPromptDictUser').value        = demoD.userText.replace(/WORD:[\s\S]*/,'WORD:\nTARGET:\nSOURCE:');
   };
 })();
