@@ -27,9 +27,9 @@ export async function extractPdf({ arrayBuffer, dpi = 180 }) {
         bbox: rectFromTransform(it.transform, it.width, it.height, viewport.height),
         page: i
       }));
-      pages.push({ page: i, mode: 'text', items, blob, width: viewport.width, height: viewport.height });
+      pages.push({ page: i, mode: 'text', items, blob, width: viewport.width, height: viewport.height, renderWidth: canvas.width, renderHeight: canvas.height });
     } else {
-      pages.push({ page: i, mode: 'image', blob, width: viewport.width, height: viewport.height });
+      pages.push({ page: i, mode: 'image', blob, width: viewport.width, height: viewport.height, renderWidth: canvas.width, renderHeight: canvas.height });
     }
   }
   return { numPages: doc.numPages, pages };
@@ -41,7 +41,7 @@ function rectFromTransform(tr, w, h, pageHeight) {
 }
 
 async function loadPdfJs() {
-  const api = globalThis.chrome ?? globalThis.browser;
+  const api = globalThis.browser ?? globalThis.chrome;
   const workerUrl = api.runtime.getURL('vendor/pdf.worker.min.mjs');
   const mainUrl = api.runtime.getURL('vendor/pdf.min.mjs');
   const mod = await import(/* @vite-ignore */ mainUrl);
