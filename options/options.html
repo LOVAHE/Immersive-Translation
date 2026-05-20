@@ -113,6 +113,16 @@
         <div class="clean-card p-6 space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <label class="block space-y-2 md:col-span-2">
+              <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Bubble theme</span>
+              <select id="translationThemeMode" class="form-input form-input-select">
+                <option value="auto">Auto - match current webpage</option>
+                <option value="light">Light bubble</option>
+                <option value="dark">Dark bubble</option>
+                <option value="custom">Custom colors</option>
+              </select>
+            </label>
+
+            <label class="block space-y-2 md:col-span-2">
               <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="styleFontFamily">Font family</span>
               <input id="translationFontFamily" class="form-input" placeholder="system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, sans-serif" />
             </label>
