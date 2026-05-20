@@ -129,7 +129,11 @@ api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         return sendResponse({ ok: false, error: err.message || String(err) });
       }
     }
-  })();
+    return sendResponse({ ok: false, error: 'Unknown background action' });
+  })().catch(err => {
+    L.error('message handler error', err);
+    sendResponse({ ok: false, error: err?.message || String(err) });
+  });
   return true;
 });
 
