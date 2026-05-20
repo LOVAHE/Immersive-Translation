@@ -6,6 +6,12 @@ import { buildTranslatePrompt, buildDictionaryPrompt } from '../prompts/common.j
 
 const L = createLogger('prov-chrome-ai');
 
+function getChromeAiLanguageModel() {
+  const model = globalThis.ai?.LanguageModel;
+  if (!model) throw new Error('Chrome AI LanguageModel API is not available in this extension context.');
+  return model;
+}
+
 export class ChromeAiTranslate extends BaseTranslator {
   id = 'chrome-ai';
   label = 'Chrome AI (Local)';
@@ -17,10 +23,11 @@ export class ChromeAiTranslate extends BaseTranslator {
 
   static async getAvailability() {
     try {
-      if (typeof window.ai?.LanguageModel?.availability !== 'function') {
+      const model = globalThis.ai?.LanguageModel;
+      if (typeof model?.availability !== 'function') {
         return 'unavailable';
       }
-      return await window.ai.LanguageModel.availability();
+      return await model.availability();
     } catch (e) {
       L.error('getAvailability error', e);
       return 'unavailable';
@@ -34,7 +41,7 @@ export class ChromeAiTranslate extends BaseTranslator {
       userOverride: this.config.promptTranslateUser
     });
 
-    const session = await window.ai.LanguageModel.create({
+    const session = await getChromeAiLanguageModel().create({
       initialPrompts: [{ role: 'system', content: systemText }]
     });
 
@@ -89,7 +96,7 @@ export class ChromeAiTranslate extends BaseTranslator {
       required: ['headword', 'senses']
     };
     
-    const session = await window.ai.LanguageModel.create({
+    const session = await getChromeAiLanguageModel().create({
       initialPrompts: [{ role: 'system', content: systemText }]
     });
 
@@ -128,7 +135,7 @@ export class ChromeAiTranslate extends BaseTranslator {
     };
 
     const imageBlob = await dataUrlToBlob(imageDataUrl);
-    const session = await window.ai.LanguageModel.create();
+    const session = await getChromeAiLanguageModel().create();
 
     const promptContent = [
       { type: 'text', value: `Target language: ${targetLang}\nTranslate visible text from this image. Output translation only.` },
