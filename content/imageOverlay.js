@@ -5,13 +5,13 @@ const api = globalThis.browser ?? globalThis.chrome;
 
 export async function translateImageFromUrl(imgUrl) {
   const s = await getSettings();
-  if (!s.ocrEnabled && s.ocrEngine === 'tesseract') throw new Error('OCR disabled');
+  if (!s.ocrEnabled && !s.visionFallback) throw new Error('OCR disabled');
   const resp = await fetch(imgUrl, { credentials:'include' });
   const blob = await resp.blob();
 
   let words = [];
   try {
-    if (s.ocrEngine === 'tesseract') {
+    if (s.ocrEnabled && s.ocrEngine === 'tesseract') {
       const langs = (s.ocrLangs || 'eng').split(',').map(x=>x.trim()).filter(Boolean);
       const out = await ocrImageBlob(blob, langs);
       words = out.words || [];
@@ -67,7 +67,7 @@ function mountOverlayOnImage(imgUrl, items) {
   if (!img) return;
   const rect = img.getBoundingClientRect();
   const host = document.createElement('div');
-  host.style.cssText = `position:absolute;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;pointer-events:none;z-index:2147483647;`;
+  host.style.cssText = `position:absolute;left:${rect.left + window.scrollX}px;top:${rect.top + window.scrollY}px;width:${rect.width}px;height:${rect.height}px;pointer-events:none;z-index:2147483647;`;
   document.body.appendChild(host);
   items.forEach(it => {
     const box = document.createElement('div');
@@ -91,4 +91,4 @@ function mountOverlayOnImage(imgUrl, items) {
     host.appendChild(box);
   });
 }
-function escape(s=''){return s.replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
+function escape(s=''){return String(s).replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
