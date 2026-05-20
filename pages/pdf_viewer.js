@@ -2,7 +2,7 @@ import { extractPdf } from '../pdf/extract.js';
 import { getSettings } from '../core/settings.js';
 import { ocrImageBlob } from '../ocr/tesseract.js';
 
-const api = (globalThis.chrome ?? globalThis.browser);
+const api = (globalThis.browser ?? globalThis.chrome);
 const qs = new URLSearchParams(location.search);
 const src = qs.get('src');
 
@@ -57,7 +57,7 @@ const src = qs.get('src');
         const resp2 = await api.runtime.sendMessage({ action: 'translateText', text: payload, targetLang: s.targetLang });
         if (resp2?.ok) {
           const parts = (resp2.result?.translated || '').split(SEP);
-          lines.forEach((l, i) => addBlock(layer, l.bbox, l.text, parts[i] || ''));
+          lines.forEach((l, i) => addBlock(layer, scaleRenderedBbox(l.bbox, p), l.text, parts[i] || ''));
         }
       } else if (s.visionFallback) {
         const dataUrl = await blobToDataURL(p.blob);
@@ -73,6 +73,13 @@ const src = qs.get('src');
     }
   }
 })();
+
+function scaleRenderedBbox(bbox, page) {
+  const sx = page.width / (page.renderWidth || page.width);
+  const sy = page.height / (page.renderHeight || page.height);
+  const [x1, y1, x2, y2] = bbox;
+  return [x1 * sx, y1 * sy, x2 * sx, y2 * sy];
+}
 
 function addBlock(layer, bbox, src, tgt) {
   const [x1, y1, x2, y2] = bbox;
@@ -129,5 +136,5 @@ function clusterLines(words) {
     return { text: r.words.map(w => w.text).join(' '), bbox: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] };
   });
 }
-function escapeHTML(s = '') { return s.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+function escapeHTML(s = '') { return String(s).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
 function blobToDataURL(b) { return new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(b); }); }
