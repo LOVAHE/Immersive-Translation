@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Immersive Translate (Cross-Browser)",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "default_locale": "en",
   "description": "Modular translation with inline rendering, dictionary mode, YouTube captions, PDF/Image OCR, i18n, and pluggable providers (OpenAI/Gemini/Azure).",
   "permissions": [
@@ -19,19 +19,11 @@
     "https://api-free.deepl.com/*",
     "https://api.openai.com/*",
     "https://*/v1/*",
-    "https://generativelanguage.googleapis.com/*",
-    "https://cdn.jsdelivr.net/*"
+    "https://generativelanguage.googleapis.com/*"
   ],
   "background": {
     "service_worker": "background.js",
-    "scripts": [
-      "background.js"
-    ],
-    "type": "module",
-    "preferred_environment": [
-      "service_worker",
-      "document"
-    ]
+    "type": "module"
   },
   "action": {
     "default_title": "Immersive Translate"
@@ -39,12 +31,8 @@
   "options_page": "options/options.html",
   "content_scripts": [
     {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "content/content.js"
-      ],
+      "matches": ["<all_urls>"],
+      "js": ["content/content.js"],
       "run_at": "document_idle"
     }
   ],
@@ -57,12 +45,9 @@
         "content/*.js",
         "pages/*.html",
         "options/*.html",
-        "tailwind.min.css",
         "vendor/*"
       ],
-      "matches": [
-        "<all_urls>"
-      ]
+      "matches": ["<all_urls>"]
     }
   ],
   "icons": {
