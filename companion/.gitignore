@@ -1,0 +1,6 @@
+/bin/
+/native-host-manifest.chrome.json
+/native-host-manifest.edge.json
+/native-host-manifest.firefox.json
+/node-path.txt
+/node_modules/

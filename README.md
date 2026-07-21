@@ -1,6 +1,6 @@
 [简体中文](README-zhcn.md)
 
-# Adaptive Translation V3.1.0
+# Adaptive Translation 3.2.0
 
 Adaptive Translation is a privacy-minded browser extension for inline translation. It can translate selected text, translate full pages paragraph by paragraph, show dictionary bubbles for single words, customize translation bubble styles, and optionally translate captions, images, and PDFs with user-selected providers.
 
@@ -15,9 +15,9 @@ The extension is designed as a modular WebExtension project with separate Chrome
 - **Dictionary bubble**: show a learner-friendly dictionary entry when a selection looks like a single word.
 - **Custom styles**: configure translation font, font size, text color, bubble color, and border color.
 - **YouTube captions**: optional bilingual caption overlay with built-in/API priority.
-- **Image and PDF translation**: local OCR with bundled Tesseract.js, with optional vision-provider fallback.
+- **Image and PDF translation**: on-device OCR plus a lazy bilingual PDF reader with original/translation page pairs, selectable source text, and translated layout overlays.
 - **Prompt editor**: customize LLM system/user prompts for translation and dictionary mode.
-- **Provider adapters**: OpenAI, Gemini, Google Translate, Azure Translator, DeepL, and Chrome AI where available.
+- **Provider adapters**: OpenAI, Gemini, Google Translate, Azure Translator, DeepL, Chrome AI, and an experimental local Codex connection where available.
 - **Internationalized UI**: English, Chinese, Japanese, Korean, French, German, and Spanish.
 - **Diagnostics**: debug logging, background ping, and provider self-test.
 
@@ -29,7 +29,9 @@ Adaptive Translation does not collect, record, sell, or upload user data to serv
 
 Content is processed only when the user triggers a translation feature or enables a related feature such as caption translation. Depending on the selected provider, selected text, page text, OCR content, image/PDF content, or captions may be sent directly from the extension to the third-party translation provider configured by the user.
 
-API keys and preferences are stored with browser extension storage and are used only to call the provider selected by the user. Users should review the privacy policies and terms of the third-party providers they choose.
+API keys are stored in local browser extension storage; ordinary preferences may use synchronized extension storage. They are used only to call the provider selected by the user. Users should review the privacy policies and terms of the third-party providers they choose.
+
+The experimental Codex provider uses a separately installed local companion and the official Codex SDK. It requires a dedicated ChatGPT sign-in managed by Codex in an isolated local profile; the extension and companion do not read or copy the credential file. Only user-requested translation text is sent through that Codex session, and API-key authentication is rejected so the provider cannot silently switch to API billing. Translation is globally serial, with one bounded conversation per webpage, opened PDF, or YouTube video. Complete translation rules and user preferences are sent only on the first turn of each physical thread; later batches send the current text and a short continuation constraint. The model can be left on the Codex-recommended default or set to an exact custom ID.
 
 See [PRIVACY_POLICY_DRAFT.md](docs/chrome-web-store/PRIVACY_POLICY_DRAFT.md) for the current store-facing privacy policy draft.
 
@@ -43,6 +45,7 @@ See [PRIVACY_POLICY_DRAFT.md](docs/chrome-web-store/PRIVACY_POLICY_DRAFT.md) for
 - **Azure Translator**: text translation.
 - **DeepL**: text translation.
 - **Chrome AI**: local Chrome AI provider where the browser exposes the required APIs. This is Chrome-only and not advertised for Firefox builds.
+- **Codex (Experimental)**: Chrome/Chromium native connection to the local Codex SDK companion, with automatic or explicit model selection and bounded task-scoped conversation reuse. No API key is entered into the extension; Firefox support is not included in this release.
 
 Providers are implemented in `providers/`, with shared prompt helpers in `prompts/`.
 
@@ -86,6 +89,8 @@ Providers are implemented in `providers/`, with shared prompt helpers in `prompt
 4. Select this project folder.
 5. Open the extension options page and configure a provider.
 
+To use the experimental Codex provider, select Codex in Settings and open **Setup guide** after loading the extension. The same release must include the separately built companion ZIP and checksum. Developer installation details and the exact Extension ID requirement are documented in [companion/README.md](companion/README.md).
+
 ### Firefox
 
 1. Open `about:debugging#/runtime/this-firefox`.
@@ -95,6 +100,16 @@ Providers are implemented in `providers/`, with shared prompt helpers in `prompt
 For AMO packaging, use the build script described below.
 
 ---
+
+## Verification
+
+Run the zero-install verification gate before packaging:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\verify.ps1
+```
+
+If `node` is not on `PATH`, pass its executable path with `-NodePath`.
 
 ## Packaging
 
@@ -147,6 +162,7 @@ providers/                Translation provider adapters
 prompts/                  Shared prompt builders
 ocr/                      OCR integration
 pdf/                      PDF extraction helpers
+companion/                Optional local Codex SDK native-messaging host
 vendor/                   Bundled PDF.js and Tesseract.js assets
 _locales/                 Browser extension localization files
 tools/                    Release packaging scripts
@@ -169,7 +185,7 @@ To add a locale, create `_locales/<lang>/messages.json` with the same message ke
 
 ## Notes For Reviewers
 
-PDF.js and Tesseract.js are bundled locally for PDF parsing and OCR. They are not downloaded from a remote host at runtime.
+PDF.js and the Tesseract.js runtime are bundled locally for PDF parsing and OCR. OCR language data is downloaded from jsDelivr as needed; executable extension code is not downloaded at runtime.
 
 Dynamic `import()` is used to load extension-bundled modules via `browser.runtime.getURL(...)` / `chrome.runtime.getURL(...)` when the user triggers image, PDF, OCR, or YouTube-related features.
 

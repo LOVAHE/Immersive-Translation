@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Settings - Immersive Translate</title>
+  <title data-i18n="settingsDocumentTitle">Settings — Adaptive Translation 3.2.0</title>
   
   <link rel="stylesheet" href="options.css">
 </head>
@@ -13,32 +13,32 @@
   <!-- Sidebar Navigation -->
   <aside class="w-full md:w-64 flex-shrink-0 bg-white dark:bg-[#1a1a1c] border-r border-slate-200 dark:border-slate-800 h-auto md:h-full flex flex-col items-center md:items-stretch py-4 md:py-8 px-4 z-10 shadow-sm relative">
     <div class="flex items-center gap-3 px-2 mb-2 md:mb-10 w-full justify-center md:justify-start">
-      <img src="../icons/icon128.png" alt="Immersive Translate" class="w-8 h-8 rounded-lg shadow-sm shrink-0" />
+      <img src="../icons/icon128.png" alt="Adaptive Translation 3.2.0" data-i18n-alt="productName" class="w-8 h-8 rounded-lg shadow-sm shrink-0" />
       <div>
-        <h1 class="text-base md:text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-tight" data-i18n="settingsTitle">Immersive</h1>
+        <h1 class="text-base md:text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-tight" data-i18n="settingsTitle">Adaptive Translation 3.2.0</h1>
         <p class="text-xs text-slate-500 font-medium" data-i18n="settingsSubtitle">Settings</p>
       </div>
     </div>
 
     <!-- Tabs Container -->
-    <nav class="flex md:flex-col gap-1 w-full overflow-x-auto md:overflow-visible pb-2 md:pb-0" id="tabs-nav">
-      <button class="tab-btn active" data-target="tab-general">
+    <nav class="flex md:flex-col gap-1 w-full overflow-x-auto md:overflow-visible pb-2 md:pb-0" id="tabs-nav" role="tablist" aria-label="Settings sections" data-i18n-aria-label="tabsLabel">
+      <button id="tab-button-general" type="button" class="tab-btn active" data-target="tab-general" role="tab" aria-controls="tab-general" aria-selected="true" tabindex="0">
         <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
         <span class="whitespace-nowrap" data-i18n="tabGeneral">General</span>
       </button>
-      <button class="tab-btn" data-target="tab-apikeys">
+      <button id="tab-button-apikeys" type="button" class="tab-btn" data-target="tab-apikeys" role="tab" aria-controls="tab-apikeys" aria-selected="false" tabindex="-1">
         <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
         <span class="whitespace-nowrap" data-i18n="tabApiKeys">API Keys</span>
       </button>
-      <button class="tab-btn" data-target="tab-style">
+      <button id="tab-button-style" type="button" class="tab-btn" data-target="tab-style" role="tab" aria-controls="tab-style" aria-selected="false" tabindex="-1">
         <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828L8.343 21M7 17h.01"></path></svg>
         <span class="whitespace-nowrap" data-i18n="tabStyle">Style</span>
       </button>
-      <button class="tab-btn" data-target="tab-advanced">
+      <button id="tab-button-advanced" type="button" class="tab-btn" data-target="tab-advanced" role="tab" aria-controls="tab-advanced" aria-selected="false" tabindex="-1">
         <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
         <span class="whitespace-nowrap" data-i18n="tabAdvanced">Advanced</span>
       </button>
-      <button class="tab-btn" data-target="tab-diagnostics">
+      <button id="tab-button-diagnostics" type="button" class="tab-btn" data-target="tab-diagnostics" role="tab" aria-controls="tab-diagnostics" aria-selected="false" tabindex="-1">
         <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
         <span class="whitespace-nowrap" data-i18n="tabDiagnostics">Diagnostics</span>
       </button>
@@ -50,7 +50,7 @@
     <div class="max-w-3xl mx-auto px-6 py-8 md:py-12 pb-32">
       
       <!-- ================= GENERAL TAB ================= -->
-      <div id="tab-general" class="tab-content active space-y-6">
+      <div id="tab-general" class="tab-content active space-y-6" role="tabpanel" aria-labelledby="tab-button-general" tabindex="0">
         <div>
           <h2 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white" data-i18n="tabGeneral">General</h2>
           <p class="text-sm text-slate-500 mt-1" data-i18n="optProviderDesc">Configure translation provider and primary languages.</p>
@@ -62,6 +62,7 @@
               <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="optProvider">Provider</span>
               <select id="provider" class="form-input form-input-select">
                 <option value="openai">OpenAI</option>
+                <option value="codex" data-i18n="codexProviderLabel">Codex (Experimental)</option>
                 <option value="google">Google Translate</option>
                 <option value="azure">Azure Translator</option>
                 <option value="deepl">DeepL</option>
@@ -100,75 +101,133 @@
               </label>
             </div>
           </div>
+          <section id="codexProviderPanel" class="pt-5 border-t border-slate-100 dark:border-slate-800" aria-labelledby="codexProviderTitle" hidden>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h3 id="codexProviderTitle" class="text-sm font-semibold text-slate-900 dark:text-white" data-i18n="codexPanelTitle">Local Codex connection</h3>
+                <p class="text-sm text-slate-500 mt-1" data-i18n="codexPanelDesc">Uses a dedicated ChatGPT sign-in managed by local Codex. Adaptive Translation never reads or stores those credentials.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <label class="block space-y-2">
+                    <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="codexModelModeLabel">Model</span>
+                    <select id="codexModelMode" class="form-input form-input-select" aria-describedby="codexModelHelp">
+                      <option value="automatic" data-i18n="codexModelAutomatic">Automatic (recommended)</option>
+                      <option value="custom" data-i18n="codexModelCustom">Custom model</option>
+                    </select>
+                  </label>
+                  <label id="codexModelCustomField" class="block space-y-2" hidden>
+                    <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="codexModelSlugLabel">Model ID</span>
+                    <input id="codexModel" class="form-input" maxlength="128" pattern="[A-Za-z0-9][A-Za-z0-9._:-]{0,127}" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="codexModelHelp" data-i18n-placeholder="codexModelSlugPlaceholder" placeholder="Enter a Codex model ID" disabled />
+                  </label>
+                </div>
+                <p id="codexModelHelp" class="text-xs text-slate-500 mt-2" data-i18n="codexModelHelp">Automatic uses the recommended model available to this ChatGPT account. An unavailable custom model will fail instead of silently changing models.</p>
+                <p id="codexProviderStatus" class="text-sm font-medium text-slate-700 dark:text-slate-300 mt-2" role="status" aria-live="polite"></p>
+              </div>
+              <div class="flex items-center gap-3 shrink-0">
+                <button id="codexSetup" type="button" class="btn-ghost" data-i18n="codexSetupButton">Setup guide</button>
+                <button id="codexEnable" type="button" class="btn-primary" data-i18n="codexEnableButton">Enable connection</button>
+                <button id="codexCheck" type="button" class="btn-ghost" data-i18n="codexCheckButton">Check again</button>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
 
       <!-- ================= STYLE TAB ================= -->
-      <div id="tab-style" class="tab-content space-y-6">
+      <div id="tab-style" class="tab-content space-y-6" role="tabpanel" aria-labelledby="tab-button-style" tabindex="0" hidden>
         <div>
           <h2 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white" data-i18n="tabStyle">Style</h2>
           <p class="text-sm text-slate-500 mt-1" data-i18n="optStyleDesc">Customize translation bubble typography and colors.</p>
         </div>
 
-        <div class="clean-card p-6 space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <label class="block space-y-2 md:col-span-2">
-              <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Bubble theme</span>
-              <select id="translationThemeMode" class="form-input form-input-select">
-                <option value="auto">Auto - match current webpage</option>
-                <option value="light">Light bubble</option>
-                <option value="dark">Dark bubble</option>
-                <option value="custom">Custom colors</option>
+        <div class="clean-card p-6 space-y-8">
+          <section class="space-y-6" aria-labelledby="style-page-heading">
+            <div>
+              <h3 id="style-page-heading" class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-1" data-i18n="stylePageSectionTitle">Webpage translation</h3>
+              <p class="text-sm text-slate-500" data-i18n="stylePageSectionDesc">Choose how paragraph translations are distinguished from the original text.</p>
+            </div>
+
+            <label class="block space-y-2">
+              <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="stylePageThemeLabel">Paragraph translation style</span>
+              <select id="translationTheme" class="form-input form-input-select">
+                <option value="none" data-i18n="styleThemeNone">None</option>
+                <option value="underline" data-i18n="styleThemeUnderline">Underline</option>
+                <option value="dashed" data-i18n="styleThemeDashed">Dashed underline</option>
+                <option value="highlight" data-i18n="styleThemeHighlight">Highlight</option>
+                <option value="weakening" data-i18n="styleThemeWeakening">Weakened</option>
+                <option value="mask" data-i18n="styleThemeMask">Mask until hover</option>
+                <option value="bold" data-i18n="styleThemeBold">Bold</option>
+                <option value="italic" data-i18n="styleThemeItalic">Italic</option>
               </select>
             </label>
 
-            <label class="block space-y-2 md:col-span-2">
-              <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="styleFontFamily">Font family</span>
-              <input id="translationFontFamily" class="form-input" placeholder="system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, sans-serif" />
-            </label>
-
-            <label class="block space-y-2">
-              <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="styleFontSize">Font size</span>
-              <input id="translationFontSize" type="number" min="10" max="28" step="1" class="form-input" />
-            </label>
-
-            <label class="block space-y-2">
-              <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="styleTextColor">Text color</span>
-              <div class="flex items-center gap-3">
-                <input id="translationTextColor" type="color" class="color-input" />
-                <input id="translationTextColorText" class="form-input" maxlength="7" placeholder="#0f172a" />
+            <div>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4" data-i18n="stylePreviewTitle">Preview</h3>
+              <div id="stylePreview" class="translation-preview" data-translation-theme="none">
+                <p id="stylePreviewOriginal" class="translation-preview-source" data-i18n="stylePreviewOriginal">Knowledge grows when it is shared.</p>
+                <div class="translation-preview-target">
+                  <span id="stylePreviewTranslation" class="translation-preview-target-inner" data-i18n="stylePreviewTranslation" tabindex="-1">知识因分享而增长。</span>
+                </div>
               </div>
-            </label>
-
-            <label class="block space-y-2">
-              <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="styleBubbleColor">Bubble color</span>
-              <div class="flex items-center gap-3">
-                <input id="translationBubbleColor" type="color" class="color-input" />
-                <input id="translationBubbleColorText" class="form-input" maxlength="7" placeholder="#ffffff" />
-              </div>
-            </label>
-
-            <label class="block space-y-2">
-              <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="styleBorderColor">Border color</span>
-              <div class="flex items-center gap-3">
-                <input id="translationBorderColor" type="color" class="color-input" />
-                <input id="translationBorderColorText" class="form-input" maxlength="7" placeholder="#e2e8f0" />
-              </div>
-            </label>
-          </div>
-
-          <div class="pt-6 border-t border-slate-100 dark:border-slate-800">
-            <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4" data-i18n="stylePreviewTitle">Preview</h3>
-            <div id="stylePreview" class="rounded-xl border p-4 shadow-sm">
-              <div class="font-semibold mb-1" data-i18n="stylePreviewText">Translated text will look like this.</div>
-              <div class="opacity-75" data-i18n="stylePreviewSample">Hello, Immersive Translation.</div>
             </div>
-          </div>
+          </section>
+
+          <section class="space-y-6 pt-6 border-t border-slate-100 dark:border-slate-800" aria-labelledby="style-popup-heading">
+            <div>
+              <h3 id="style-popup-heading" class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-1" data-i18n="stylePopupSectionTitle">Floating translation popup</h3>
+              <p class="text-sm text-slate-500" data-i18n="stylePopupSectionDesc">These settings apply to selection, dictionary, image, and PDF popups.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <label class="block space-y-2 md:col-span-2">
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="stylePopupThemeLabel">Floating popup theme</span>
+                <select id="translationThemeMode" class="form-input form-input-select">
+                  <option value="auto" data-i18n="stylePopupThemeAuto">Auto — match current webpage</option>
+                  <option value="light" data-i18n="stylePopupThemeLight">Light popup</option>
+                  <option value="dark" data-i18n="stylePopupThemeDark">Dark popup</option>
+                  <option value="custom" data-i18n="stylePopupThemeCustom">Custom colors</option>
+                </select>
+              </label>
+
+              <label class="block space-y-2 md:col-span-2">
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="styleFontFamily">Font family</span>
+                <input id="translationFontFamily" class="form-input" placeholder="system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, sans-serif" />
+              </label>
+
+              <label class="block space-y-2">
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="styleFontSize">Font size</span>
+                <input id="translationFontSize" type="number" min="10" max="28" step="1" class="form-input" />
+              </label>
+
+              <label class="block space-y-2">
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="styleTextColor">Text color</span>
+                <div class="flex items-center gap-3">
+                  <input id="translationTextColor" type="color" class="color-input" />
+                  <input id="translationTextColorText" class="form-input" maxlength="7" placeholder="#0f172a" />
+                </div>
+              </label>
+
+              <label class="block space-y-2">
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="styleBubbleColor">Popup color</span>
+                <div class="flex items-center gap-3">
+                  <input id="translationBubbleColor" type="color" class="color-input" />
+                  <input id="translationBubbleColorText" class="form-input" maxlength="7" placeholder="#ffffff" />
+                </div>
+              </label>
+
+              <label class="block space-y-2">
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="styleBorderColor">Border color</span>
+                <div class="flex items-center gap-3">
+                  <input id="translationBorderColor" type="color" class="color-input" />
+                  <input id="translationBorderColorText" class="form-input" maxlength="7" placeholder="#e2e8f0" />
+                </div>
+              </label>
+            </div>
+          </section>
         </div>
       </div>
 
       <!-- ================= API KEYS TAB ================= -->
-      <div id="tab-apikeys" class="tab-content space-y-6">
+      <div id="tab-apikeys" class="tab-content space-y-6" role="tabpanel" aria-labelledby="tab-button-apikeys" tabindex="0" hidden>
         <div>
           <h2 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white" data-i18n="tabApiKeys">API Keys & Endpoints</h2>
           <p class="text-sm text-slate-500 mt-1" data-i18n="optApiKeysDesc">Configure your authentication keys and custom host URLs.</p>
@@ -181,7 +240,7 @@
       </div>
 
       <!-- ================= ADVANCED TAB ================= -->
-      <div id="tab-advanced" class="tab-content space-y-6">
+      <div id="tab-advanced" class="tab-content space-y-6" role="tabpanel" aria-labelledby="tab-button-advanced" tabindex="0" hidden>
         <div>
           <h2 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white" data-i18n="tabAdvanced">Advanced Settings</h2>
           <p class="text-sm text-slate-500 mt-1" data-i18n="optAdvancedDesc">Tweak OCR, UI language, and YouTube specific overlays.</p>
@@ -241,7 +300,7 @@
               <label class="block space-y-2 md:col-span-2">
                 <span class="text-sm font-semibold text-slate-700 dark:text-slate-300" data-i18n="ocrEngine">OCR engine</span>
                 <select id="ocrEngine" class="form-input form-input-select w-full md:w-1/2">
-                  <option value="tesseract" data-i18n="ocrEngineLocal">Local (Tesseract.js)</option>
+                  <option value="tesseract" data-i18n="ocrEngineLocal">On-device OCR (downloads language data as needed)</option>
                   <option value="vision" data-i18n="ocrEngineVision">LLM Vision fallback only</option>
                 </select>
               </label>
@@ -282,7 +341,7 @@
       </div>
 
       <!-- ================= DIAGNOSTICS TAB ================= -->
-      <div id="tab-diagnostics" class="tab-content space-y-6">
+      <div id="tab-diagnostics" class="tab-content space-y-6" role="tabpanel" aria-labelledby="tab-button-diagnostics" tabindex="0" hidden>
         <div>
           <h2 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white" data-i18n="tabDiagnostics">Diagnostics</h2>
           <p class="text-sm text-slate-500 mt-1" data-i18n="optDiagnosticsDesc">Connectivity, logs, and self-testing.</p>

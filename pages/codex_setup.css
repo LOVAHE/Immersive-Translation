@@ -1,0 +1,43 @@
+:root {
+  color-scheme: light dark;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; }
+.setup-shell { width: min(720px, calc(100% - 40px)); margin: 0 auto; padding: 56px 0 80px; }
+.setup-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+.setup-header img { border-radius: 12px; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12); }
+.eyebrow { margin: 0 0 4px; color: #64748b; font-size: 13px; font-weight: 650; }
+h1 { margin: 0; font-size: clamp(28px, 5vw, 40px); letter-spacing: -0.025em; }
+.intro { margin: 0 0 28px; color: #475569; font-size: 17px; line-height: 1.65; }
+.setup-card { margin-top: 18px; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05); }
+h2 { margin: 0 0 16px; font-size: 17px; }
+.id-row { display: flex; align-items: stretch; gap: 10px; }
+code { overflow-wrap: anywhere; font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
+.id-row code, .command { display: block; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 10px; background: #f8fafc; color: #1e293b; }
+.id-row code { flex: 1; }
+.command { margin-top: 10px; line-height: 1.55; user-select: all; }
+button { border: 0; border-radius: 10px; padding: 0 18px; background: #2563eb; color: #fff; font: inherit; font-weight: 650; cursor: pointer; }
+button:focus-visible { outline: 3px solid rgba(37, 99, 235, 0.3); outline-offset: 2px; }
+.status { min-height: 20px; margin: 8px 0 0; color: #047857; font-size: 13px; }
+ol { margin: 0; padding-left: 24px; color: #334155; line-height: 1.65; }
+li + li { margin-top: 12px; }
+.security-note { margin-top: 20px; padding: 16px 18px; border-left: 3px solid #2563eb; border-radius: 8px; background: #eff6ff; color: #1e3a8a; line-height: 1.55; }
+
+@media (max-width: 520px) {
+  .setup-shell { width: min(100% - 24px, 720px); padding-top: 28px; }
+  .setup-card { padding: 18px; }
+  .id-row { flex-direction: column; }
+  button { min-height: 44px; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root { background: #0f1115; color: #f8fafc; }
+  .intro, ol { color: #cbd5e1; }
+  .setup-card { border-color: #2b3442; background: #171a21; box-shadow: none; }
+  .id-row code, .command { border-color: #3b4658; background: #10131a; color: #e2e8f0; }
+  .security-note { background: #172554; color: #dbeafe; }
+}

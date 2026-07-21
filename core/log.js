@@ -1,5 +1,11 @@
 // core/log.js
 
+let debugLoggingEnabled = false;
+
+export function setDebugLogging(enabled) {
+  debugLoggingEnabled = enabled === true;
+}
+
 function normalize(arg) {
   if (arg instanceof Error) return { name: arg.name, message: arg.message, stack: arg.stack };
   if (typeof arg === 'object' && arg) {
@@ -10,6 +16,7 @@ function normalize(arg) {
 export function createLogger(scope = 'app') {
   const tag = `[IT][${scope}]`;
   const out = (level, ...args) => {
+    if ((level === 'debug' || level === 'info') && !debugLoggingEnabled) return;
     const xs = args.map(normalize);
     const fn = level === 'error' ? console.error
             : level === 'warn'  ? console.warn

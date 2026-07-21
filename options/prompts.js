@@ -1,9 +1,15 @@
 import { getSettings, setSettings } from '../core/settings.js';
 import { initI18n, t } from '../core/i18n.js';
-import { buildTranslatePrompt, buildDictionaryPrompt } from '../prompts/common.js';
 
 function el(id){ return document.getElementById(id); }
 function applyI18n(root=document){ root.querySelectorAll('[data-i18n]').forEach(n=>{ n.textContent = t(n.getAttribute('data-i18n')); }); }
+
+const PROMPT_FIELD_IDS = [
+  'openaiPromptTranslateSystem',
+  'openaiPromptTranslateUser',
+  'openaiPromptDictSystem',
+  'openaiPromptDictUser'
+];
 
 (async function init(){
   const s = await getSettings();
@@ -24,12 +30,7 @@ function applyI18n(root=document){ root.querySelectorAll('[data-i18n]').forEach(
     alert(t('btnSave') || 'Saved');
   };
 
-  el('btnReset').onclick = async () => {
-    const demoT = buildTranslatePrompt({ text:'Hello', targetLang:'zh' });
-    const demoD = buildDictionaryPrompt({ text:'apple', targetLang:'zh' });
-    el('openaiPromptTranslateSystem').value = demoT.systemText;
-    el('openaiPromptTranslateUser').value   = demoT.userText.replace(/---[\s\S]*$/,'---\n');
-    el('openaiPromptDictSystem').value      = demoD.systemText;
-    el('openaiPromptDictUser').value        = demoD.userText.replace(/WORD:[\s\S]*/,'WORD:\nTARGET:\nSOURCE:');
+  el('btnReset').onclick = () => {
+    PROMPT_FIELD_IDS.forEach(id => { el(id).value = ''; });
   };
 })();

@@ -1,0 +1,9 @@
+{
+  "name": "com.adaptive_translation.codex",
+  "description": "Adaptive Translation Codex companion",
+  "path": "C:\\absolute\\path\\to\\adaptive_translation_codex_host.exe",
+  "type": "stdio",
+  "allowed_extensions": [
+    "adaptive-translation@local"
+  ]
+}
