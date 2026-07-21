@@ -7,7 +7,7 @@ const L = createLogger('prov-deepl');
 export class DeepLTranslate extends BaseTranslator {
   id = 'deepl'; label = 'DeepL';
 
-  async translate({ text, sourceLang='auto', targetLang }) {
+  async translate({ text, sourceLang='auto', targetLang, signal }) {
     if (!this.config.key) throw new Error('DeepL key missing');
     const endpoint = 'https://api.deepl.com/v2/translate';
     const params = new URLSearchParams();
@@ -16,17 +16,17 @@ export class DeepLTranslate extends BaseTranslator {
     params.set('target_lang', targetLang.toUpperCase());
     if (sourceLang !== 'auto') params.set('source_lang', sourceLang.toUpperCase());
     L.info('POST', 'deepl translate', { target: targetLang, source: sourceLang });
-    const res = await withTimeout(fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: params }));
+    const res = await withTimeout(fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: params, signal }));
     L.info('status', res.status);
-    if (!res.ok) { const t = await res.text().catch(()=> ''); L.error('error body', t.slice(0,500)); throw new Error(`DeepL API ${res.status}`); }
+    if (!res.ok) { L.error('translate error', { status: res.status }); throw new Error(`DeepL API ${res.status}`); }
     const data = await res.json();
     const translated = data?.translations?.[0]?.text || '';
     L.info('translate ok', { outLen: translated.length });
     return { translated, raw: data };
   }
 
-  async define({ text, sourceLang='auto', targetLang }) {
-    const t = await this.translate({ text, sourceLang, targetLang });
+  async define({ text, sourceLang='auto', targetLang, signal }) {
+    const t = await this.translate({ text, sourceLang, targetLang, signal });
     return { dictionary: { headword: text, phonetic: null, senses: [{ pos:'', gloss: t.translated, examples: [] }], synonyms: [] }, raw: t.raw };
   }
 }

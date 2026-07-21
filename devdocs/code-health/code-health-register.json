@@ -1,0 +1,400 @@
+{
+  "version": 1,
+  "last_updated": "2026-07-16",
+  "findings": [
+    {
+      "id": "CH-001",
+      "title": "Dictionary response normalization was duplicated across LLM providers",
+      "status": "resolved",
+      "area": "providers/dictionary.js",
+      "category": "understanding-risk",
+      "evidence": [
+        "At audit start, providers/openai.js, providers/gemini.js, and providers/chromeAi.js each contained equivalent inline field normalization.",
+        "All provider dictionary parsing now calls normalizeDictionary from providers/dictionary.js while preserving provider-specific parse fallbacks.",
+        "tools/dictionary-normalization.test.mjs covers canonical fields, legacy aliases, missing collections, Azure examples, and provider-specific parse fallbacks."
+      ],
+      "impact_score": {
+        "change_frequency": 2,
+        "blast_radius": 3,
+        "defect_risk": 3,
+        "verification_gap": 1,
+        "confidence": 5,
+        "total": 90
+      },
+      "recommended_action": "Keep provider parsing and fallback policy local; keep shared dictionary field aliases in normalizeDictionary.",
+      "safe_first_step": "Run the dictionary normalization test before changing the dictionary DTO.",
+      "verification": "node --test tools/dictionary-normalization.test.mjs",
+      "blocked_by": "",
+      "notes": "Resolved on 2026-07-11; expanded suite has seven passing tests on 2026-07-16."
+    },
+    {
+      "id": "CH-002",
+      "title": "Custom prompt storage and override semantics can drop dynamic input",
+      "status": "resolved",
+      "area": "core/settings.js, options/prompts.js, prompts/common.js",
+      "category": "change-risk",
+      "evidence": [
+        "core/settings.js now defines all four saved custom prompt keys.",
+        "Custom user prompt text is treated as bounded instruction text while the current input and language pair remain in the runtime payload; only system overrides remain complete replacements.",
+        "tools/prompt-contract.test.mjs covers translation, dictionary, default prompt, and system-override contracts."
+      ],
+      "impact_score": {
+        "change_frequency": 2,
+        "blast_radius": 5,
+        "defect_risk": 5,
+        "verification_gap": 5,
+        "confidence": 5,
+        "total": 1250
+      },
+      "recommended_action": "Preserve the tested distinction between bounded user instructions and complete system overrides.",
+      "safe_first_step": "Run the prompt contract suite before changing prompt assembly or storage keys.",
+      "verification": "node --test tools/prompt-contract.test.mjs",
+      "blocked_by": "",
+      "notes": "Resolved on 2026-07-16; four tests pass."
+    },
+    {
+      "id": "CH-003",
+      "title": "Debug setting does not control content-bearing logs",
+      "status": "resolved",
+      "area": "core/log.js, background.js, providers/, offscreen.js",
+      "category": "operational-security-risk",
+      "evidence": [
+        "Debug and info output are disabled by default and enabled only by the explicit synchronized debug setting.",
+        "Background and provider error paths no longer log selected text, API keys, or remote response bodies.",
+        "tools/logging-contract.test.mjs and tools/debug-settings-contract.test.mjs cover redaction, default gating, and realm-local setting updates."
+      ],
+      "impact_score": {
+        "change_frequency": 2,
+        "blast_radius": 5,
+        "defect_risk": 5,
+        "verification_gap": 5,
+        "confidence": 5,
+        "total": 1250
+      },
+      "recommended_action": "Keep content-bearing values outside logs in every mode and extend the sentinel tests when adding provider error paths.",
+      "safe_first_step": "Run both logging contract suites before changing logger initialization or provider errors.",
+      "verification": "node --test tools/logging-contract.test.mjs tools/debug-settings-contract.test.mjs",
+      "blocked_by": "",
+      "notes": "Resolved on 2026-07-16; four combined tests pass."
+    },
+    {
+      "id": "CH-004",
+      "title": "Release versions and generated artifacts have no single source of truth",
+      "status": "mitigated",
+      "area": "manifest*.json, tools/build-*.ps1, tools/verify.ps1, dist/",
+      "category": "operational-security-risk",
+      "evidence": [
+        "manifest.json, manifest.chrome.json, and manifest.firefox.json all identify Adaptive Translation 3.2.0.",
+        "Each build script derives its default archive version from the target manifest and fails before staging when an explicit version disagrees; the source build also requires all manifest versions to match.",
+        "tools/verify.ps1 enforces manifest identity before syntax and test checks, and the stale dist tree (11 staging directories, 18 archives, 612 files, about 174.2 MiB) has been removed."
+      ],
+      "impact_score": {
+        "change_frequency": 4,
+        "blast_radius": 5,
+        "defect_risk": 5,
+        "verification_gap": 5,
+        "confidence": 5,
+        "total": 2500
+      },
+      "recommended_action": "Keep the verification gate mandatory before packaging; centralize the version field only if repeated manual edits recur.",
+      "safe_first_step": "Change one manifest version in a disposable copy and confirm verification and packaging fail before writing artifacts.",
+      "verification": "powershell -File tools/verify.ps1; confirm dist is absent before a deliberate release build",
+      "blocked_by": "",
+      "notes": "Mitigated on 2026-07-16 and revalidated at version 3.2.0 on 2026-07-21 after comparison with GitHub branch v3 at a64adc0. Three source manifests still repeat the version value, so drift is prevented by a gate rather than eliminated structurally. No release archives were rebuilt during cleanup."
+    },
+    {
+      "id": "CH-005",
+      "title": "Provider capabilities and public result DTO are implicit",
+      "status": "resolved",
+      "area": "core/router.js, providers/catalog.js, providers/index.js",
+      "category": "architecture-risk",
+      "evidence": [
+        "An explicit provider catalog now declares translation, dictionary, vision, and experimental capabilities.",
+        "Unknown provider IDs normalize consistently to OpenAI; Azure dictionary routing is enabled while Google and DeepL remain on their supported translation path.",
+        "Public translation responses omit vendor raw payloads, with catalog, routing, and DTO behavior covered by table-driven tests."
+      ],
+      "impact_score": {
+        "change_frequency": 2,
+        "blast_radius": 5,
+        "defect_risk": 4,
+        "verification_gap": 5,
+        "confidence": 5,
+        "total": 1000
+      },
+      "recommended_action": "Add capability entries and routing assertions together whenever a provider gains a new operation.",
+      "safe_first_step": "Run capability and router-boundary tests before changing provider registration or public DTO fields.",
+      "verification": "node --test tools/provider-capabilities.test.mjs tools/router-boundary.test.mjs",
+      "blocked_by": "",
+      "notes": "Resolved on 2026-07-16; six combined tests pass."
+    },
+    {
+      "id": "CH-006",
+      "title": "Batch translation relies on an unchecked invisible-delimiter protocol",
+      "status": "resolved",
+      "area": "core/batchTranslation.js, content/, pages/pdf_viewer.js",
+      "category": "architecture-risk",
+      "evidence": [
+        "Page, reasoning, YouTube, image, and PDF batch paths use the shared batch helper.",
+        "The helper returns exactly the requested cardinality, pads missing entries, truncates extras, and contains delimiter corruption within the current chunk.",
+        "tools/batch-translation.test.mjs covers exact, missing, extra, altered-separator, and zero-length behavior."
+      ],
+      "impact_score": {
+        "change_frequency": 2,
+        "blast_radius": 5,
+        "defect_risk": 4,
+        "verification_gap": 5,
+        "confidence": 5,
+        "total": 1000
+      },
+      "recommended_action": "Keep provider mismatch handling chunk-local and retain exact-cardinality assertions for new batch callers.",
+      "safe_first_step": "Run batch tests and the affected caller contract before changing separators or chunk sizes.",
+      "verification": "node --test tools/batch-translation.test.mjs",
+      "blocked_by": "",
+      "notes": "Resolved on 2026-07-16; five tests pass."
+    },
+    {
+      "id": "CH-007",
+      "title": "Content-script settings defaults drift from the shared settings contract",
+      "status": "resolved",
+      "area": "content/content.js, core/settings.js",
+      "category": "architecture-risk",
+      "evidence": [
+        "The content script imports and uses the shared getSettings contract instead of resolving a separate empty-storage default set.",
+        "Default and persisted settings now follow the same sync/local split across background, options, and content paths.",
+        "tools/settings-storage.test.mjs covers representative legacy and current storage behavior."
+      ],
+      "impact_score": {
+        "change_frequency": 2,
+        "blast_radius": 4,
+        "defect_risk": 4,
+        "verification_gap": 5,
+        "confidence": 5,
+        "total": 800
+      },
+      "recommended_action": "Keep effective defaults in core/settings.js and import that contract rather than recreating storage coercion.",
+      "safe_first_step": "Run settings storage tests with empty and partial storage fixtures before changing defaults.",
+      "verification": "node --test tools/settings-storage.test.mjs",
+      "blocked_by": "",
+      "notes": "Resolved on 2026-07-16."
+    },
+    {
+      "id": "CH-008",
+      "title": "YouTube overlay lacks a single SPA and async lifecycle controller",
+      "status": "resolved",
+      "area": "content/youtube.js, content/content.js",
+      "category": "change-risk",
+      "evidence": [
+        "Content now bootstraps the YouTube controller on every YouTube route, including non-watch pages that later navigate to /watch.",
+        "A singleton controller owns stable navigation, settings, pagehide, and pageshow listeners; repeated start is idempotent and dispose removes the same listener identities.",
+        "Every genuine video/settings transition advances a generation and aborts prior work, while videoId and generation guards prevent late A-to-B results from activating. Duplicate late events for the same video are coalesced so they neither abort a healthy task nor rotate its translation context.",
+        "Cue gaps explicitly resolve to null and clear the previous subtitle; disabling the setting unmounts the overlay.",
+        "tools/youtube-lifecycle.test.mjs covers all-route bootstrap, home-to-watch, singleton listeners, rapid navigation, same-video duplicate events, waiting for player ownership before caption translation, cue gaps, settings/dispose, and BFCache suspend/resume without duplicated listeners."
+      ],
+      "impact_score": {
+        "change_frequency": 2,
+        "blast_radius": 3,
+        "defect_risk": 5,
+        "verification_gap": 5,
+        "confidence": 5,
+        "total": 750
+      },
+      "recommended_action": "Keep navigation, generation, cancellation, cue rendering, and listener ownership inside the singleton controller.",
+      "safe_first_step": "Run the YouTube lifecycle suite before changing SPA navigation, settings, or BFCache behavior.",
+      "verification": "node --test tools/youtube-lifecycle.test.mjs",
+      "blocked_by": "",
+      "notes": "Resolved on 2026-07-16; seven lifecycle tests pass, including same-video duplicate-event coalescing without context rotation and a player-ownership gate before translation. A live YouTube browser smoke remains release QA."
+    },
+    {
+      "id": "CH-009",
+      "title": "API keys share synchronized storage with ordinary preferences",
+      "status": "resolved",
+      "area": "core/settings.js, options/options.js",
+      "category": "operational-security-risk",
+      "evidence": [
+        "Provider secrets are stored in storage.local while ordinary preferences remain in storage.sync.",
+        "Legacy synchronized secrets migrate idempotently without overwriting existing local values and are removed from synchronized storage after persistence succeeds.",
+        "Credential inputs render as password fields and tools/settings-storage.test.mjs covers migration and subsequent writes."
+      ],
+      "impact_score": {
+        "change_frequency": 2,
+        "blast_radius": 5,
+        "defect_risk": 4,
+        "verification_gap": 5,
+        "confidence": 5,
+        "total": 1000
+      },
+      "recommended_action": "Add every new secret key to SECRET_SETTING_KEYS and to the migration contract before exposing its setting.",
+      "safe_first_step": "Run storage migration tests before changing secret names or storage areas.",
+      "verification": "node --test tools/settings-storage.test.mjs",
+      "blocked_by": "",
+      "notes": "Resolved on 2026-07-16; two tests pass."
+    },
+    {
+      "id": "CH-010",
+      "title": "Local OCR has an unresolved language-data network boundary",
+      "status": "resolved",
+      "area": "ocr/tesseract.js, vendor/, manifests, options, privacy documentation",
+      "category": "operational-security-risk",
+      "evidence": [
+        "The product now explicitly uses the bundled Tesseract runtime with version-matched language data downloaded from jsDelivr when a language is first needed.",
+        "All three manifests declare https://cdn.jsdelivr.net/* and user-facing permission/privacy text documents the network boundary.",
+        "tools/ocr-network-contract.test.mjs verifies the Tesseract v5 adapter, bundled worker fallback, runtime loader, language-worker replacement, and manifest permissions."
+      ],
+      "impact_score": {
+        "change_frequency": 2,
+        "blast_radius": 4,
+        "defect_risk": 5,
+        "verification_gap": 5,
+        "confidence": 5,
+        "total": 1000
+      },
+      "recommended_action": "Keep the declared CDN, bundled Tesseract version, UI copy, and privacy promise aligned when upgrading OCR.",
+      "safe_first_step": "Run the OCR network contract and an online/offline failure smoke when changing Tesseract or language data.",
+      "verification": "node --test tools/ocr-network-contract.test.mjs",
+      "blocked_by": "",
+      "notes": "Resolved as an explicit online language-data contract on 2026-07-16; all nine OCR contract tests pass, including the adjacent queue/reuse cases. A live first-download smoke remains release QA, not an undefined architecture boundary."
+    },
+    {
+      "id": "CH-011",
+      "title": "There is no single verification and release gate",
+      "status": "resolved",
+      "area": "tools/verify.ps1, tools/*.test.mjs",
+      "category": "verification-risk",
+      "evidence": [
+        "tools/verify.ps1 is the documented no-install gate for manifest identity, JSON parsing, PowerShell parsing, JavaScript syntax, and all Node test files.",
+        "The final 2026-07-16 run parsed 15 JSON and 9 PowerShell files, syntax-checked 69 JavaScript files, and passed 119 tests across all 18 test files.",
+        "Build scripts reject explicit versions that disagree with their source manifests before staging output."
+      ],
+      "impact_score": {
+        "change_frequency": 3,
+        "blast_radius": 5,
+        "defect_risk": 4,
+        "verification_gap": 5,
+        "confidence": 5,
+        "total": 1500
+      },
+      "recommended_action": "Run tools/verify.ps1 before packaging and extend it whenever a new first-party test or parseable source type is introduced.",
+      "safe_first_step": "Use the single verification command before and after cross-module changes.",
+      "verification": "powershell -File tools/verify.ps1",
+      "blocked_by": "",
+      "notes": "Resolved on 2026-07-16. Live browser, provider-network, OCR-download, and store-validator checks remain explicit environment-level QA."
+    },
+    {
+      "id": "CH-012",
+      "title": "Temporary content UI lacks consistent ownership and disposal",
+      "status": "mitigated",
+      "area": "content/content.js, content/imageOverlay.js",
+      "category": "change-risk",
+      "evidence": [
+        "Image overlays now use a WeakMap-owned idempotent disposer, replace earlier overlays, observe resize, and dispose when the source image leaves the document.",
+        "Reasoning popovers now have an owner disposer and owner-removal observation across close and replacement paths.",
+        "Full-page translation uses a unique DOM-ordered queue with one async drain, filters detached entries before each batch, and clears queued references during teardown, so page discovery, mutation, and retry paths cannot overlap provider calls or retain abandoned work.",
+        "tools/ui-contract.test.mjs and tools/immersive-page-ui.test.mjs contain static lifecycle contracts for these ownership paths, but no live browser lifecycle run has been recorded."
+      ],
+      "impact_score": {
+        "change_frequency": 2,
+        "blast_radius": 3,
+        "defect_risk": 4,
+        "verification_gap": 5,
+        "confidence": 5,
+        "total": 600
+      },
+      "recommended_action": "Promote to resolved after a live browser test proves repeated open/close, replacement, resize, source changes, and target removal leave no detached or duplicate UI.",
+      "safe_first_step": "Run the existing static contracts, then inspect DOM ownership during repeated page mutation, image, and reasoning interactions.",
+      "verification": "node --test tools/ui-contract.test.mjs tools/immersive-page-ui.test.mjs; live browser lifecycle smoke pending",
+      "blocked_by": "A chosen live browser session is required for final lifecycle verification.",
+      "notes": "Mitigated on 2026-07-16; implementation ownership is explicit, with live runtime evidence still missing."
+    },
+    {
+      "id": "CH-013",
+      "title": "Codex native companion deployment, account, and persistence boundaries need explicit containment",
+      "status": "mitigated",
+      "area": "core/codexNative.js, core/translationRpc.js, providers/codex.js, companion/, content/, pages/pdf_viewer.js, options",
+      "category": "operational-security-risk",
+      "evidence": [
+        "The Chrome/Edge integration uses optional Native Messaging protocol v2 with strict size-bounded framing, exact result IDs, stale-port protection, and a port-bound protocol/securityProfile compatibility handshake; a v1 companion fails closed and translation cannot reuse health from a replacement port.",
+        "The extension provider fragments text without splitting grapheme clusters, preserves ordering/cardinality, and respects the companion contract of at most 8,000 UTF-16 code units per item, 64,000 per batch, and 128 items per request.",
+        "The companion uses a dedicated CODEX_HOME under LOCALAPPDATA/AdaptiveTranslation/Codex, forces ChatGPT-only authentication with file credentials, does not merge the user's ordinary profile or MCP/provider configuration, and allowlists the child environment so API keys and custom base URLs are not inherited.",
+        "The companion remains globally serial and reuses one read-only SDK thread only within an opaque random webpage, opened-PDF, or YouTube task context. Selection and other short requests remain isolated. The full safety/style prompt is sent on the first physical-thread turn; later turns contain only the current inert input and a short continuation contract, while every turn keeps an exact output schema.",
+        "Sessions are bounded by eight-entry LRU, five-minute idle time, 24 successful turns, and 120,000 source characters. Model, language, or prompt changes rotate the physical thread; cancellation, timeout, SDK failure, blank or otherwise invalid output, explicit close, and host shutdown poison and discard it. Each physical thread owns one random empty working directory until disposal, and shutdown retries cleanup after active turns settle.",
+        "Codex model selection is synchronized as a non-secret setting: automatic uses an explicit empty value and omits the SDK model option, while a non-empty exact custom ID is strictly validated on write and passed without silent fallback. The companion returns a sanitized model-unavailable error when it can classify one.",
+        "AbortSignal cancellation sends an explicit native cancel request for the exact in-flight ID; the serial queue never overlaps work and fails closed after an abort grace period if a timed-out SDK task ignores cancellation. Raw SDK, CLI, filesystem, and authentication errors do not cross the framed native boundary.",
+        "The SDK is lockfile-pinned and installed with production npm ci into a stable versioned path; separate login/logout scripts use the isolated profile, and a separate companion ZIP plus SHA-256 build has metadata validation."
+      ],
+      "impact_score": {
+        "change_frequency": 2,
+        "blast_radius": 4,
+        "defect_risk": 4,
+        "verification_gap": 4,
+        "confidence": 5,
+        "total": 640
+      },
+      "recommended_action": "Establish a trustworthy companion artifact channel, then complete the ZIP, dependency install, registry, native-message, ChatGPT sign-in, translation, and logout smoke while preserving the documented isolation limits.",
+      "safe_first_step": "Build and hash the companion artifact, verify it from its eventual published channel, then install with an exact unpacked Chrome/Edge extension ID and run one non-sensitive signed-in translation.",
+      "verification": "node --test tools/codex-companion.test.mjs tools/codex-provider.test.mjs tools/codex-integration-contract.test.mjs tools/codex-native-connection.test.mjs; companion metadata validation and native launcher compile smoke passed; full artifact/install/native-message/signed-in flow pending",
+      "blocked_by": "No trustworthy published companion download URL or artifact channel is defined, and the exact unpacked Chrome/Edge extension ID and signed-in end-to-end environment are unavailable.",
+      "notes": "Mitigated on 2026-07-16. Static tests cover strict model writes plus omission/forwarding, task context propagation, first-versus-continuation prompts, thread reuse/rotation/blank-output poisoning, active-turn directory cleanup retry, explicit close, protocol mismatch, and global serialization. The SDK exposes no subscription-plan or reliable available-model-list API and no true ephemeral switch; normal local rollout persistence may remain. Logout clears Codex authentication but intentionally leaves non-credential session files. This controls the SDK/bundled CLI through the companion, not the open Codex desktop GUI."
+    },
+    {
+      "id": "CH-014",
+      "title": "PDF reader lacks live fixture verification and advanced viewer parity",
+      "status": "open",
+      "area": "pages/pdf_viewer.*, pdf/layout.js, pdf/extract.js, pdf/source.js, core/pdfHandoff.js, core/translationRpc.js, background.js",
+      "category": "verification-risk",
+      "evidence": [
+        "The reader renders lazy selectable source pages beside translated pages, preserves page graphics, positions white translation overlays, uses only first-page information eagerly for placeholders, and falls back to per-page OCR for unusable text layers.",
+        "Translation regions reserve non-overlapping space within visual columns, then fit text down to a minimum size and expose overflow scrolling instead of painting across the following paragraph.",
+        "A document retry reuses the request object already consumed from the one-time handoff; start, zoom, fit-width, scroll scheduling, and page work are guarded by document/page generations, including a post-destroy guard that prevents an older concurrent start from clearing a newer document DOM.",
+        "PDF responses are streamed with a hard 100 MB cap even when Content-Length is absent or dishonest, and the shared cancellation RPC aborts background/provider work when page or document work is abandoned.",
+        "Translation and OCR results remain cached across rerender, while offscreen disposal aborts work, releases canvas bitmaps, text/translation DOM, and the PDF.js page proxy, then permits clean re-entry when the page becomes visible again. PDF BFCache suspension aborts document/page work and closes the old translation context; resume creates a fresh context and schedules only visible pages, restarting a half-open document transaction instead of resuming partial state.",
+        "OCR work is serialized: a task aborted before recognition starts is rejected without using the worker, while an already-started non-interruptible Tesseract task is retained per page, reused after leave/re-entry, and allowed to populate only the lightweight base-coordinate OCR cache without triggering stale paid translation.",
+        "A strict unhandled-rejection run passed all 24 OCR/PDF tests. An independent concurrency review also exercised 100 started-abort/re-entry races and 80 language-switch, queued-abort, and terminate operations with maximum worker concurrency of one, no duplicate page OCR, no queue deadlock, and no unhandled rejection.",
+        "One-time handoffs enforce a ten-minute TTL, prune expired local fallbacks, and roll back the saved request when reader-tab creation fails.",
+        "The toolbar and accessibility labels are localized. Static tests cover geometry, non-overlap fitting, streaming limits, cancellation, OCR queueing/reuse/fallback, lazy bilingual structure, handoff TTL/rollback, cache-preserving disposal/re-entry, and optional origin permissions.",
+        "No representative real PDF fixture has been exercised in a live Chrome/Firefox session, and search, outline, annotation, export, password handling, and full PDF.js viewer parity are not implemented."
+      ],
+      "impact_score": {
+        "change_frequency": 3,
+        "blast_radius": 4,
+        "defect_risk": 4,
+        "verification_gap": 5,
+        "confidence": 5,
+        "total": 1200
+      },
+      "recommended_action": "Run a representative live fixture matrix and prioritize advanced viewer features from observed user need rather than attempting wholesale PDF.js parity.",
+      "safe_first_step": "Test text-native, rotated, two-column, scanned, large, remote, and malformed PDFs in one chosen browser while checking selection, cancellation, zoom, and memory behavior.",
+      "verification": "node --unhandled-rejections=strict --test tools/ocr-network-contract.test.mjs tools/pdf-viewer-contract.test.mjs; live real-PDF/browser fixture matrix pending",
+      "blocked_by": "A chosen browser and representative non-sensitive PDF fixtures are required for runtime QA.",
+      "notes": "Opened on 2026-07-16. Core reader behavior, bounded streaming, shared cancellation, retry safety, resource disposal/re-entry, queued-OCR cancellation, started-task reuse, stale-result containment, caches, and localized controls are statically covered; runtime layout, memory, password behavior, and advanced parity remain evidence gaps."
+    },
+    {
+      "id": "CH-015",
+      "title": "Cross-surface translation cancellation and stale-result ownership lack live slow-network evidence",
+      "status": "mitigated",
+      "area": "background.js, manifest*.json, core/translationRequests.js, core/translationRpc.js, core/router.js, content/, pages/pdf_viewer.js, providers/",
+      "category": "verification-risk",
+      "evidence": [
+        "The background registry binds each requestId to its sender extension, tab, frame, and document identity; cancelTranslation can abort only a request owned by the same sender, while legacy messages remain compatible.",
+        "Page, PDF, and YouTube callers use cancellable translation RPCs; background and router propagate AbortSignal through remote providers, Chrome AI, and Codex, including explicit native Codex cancellation.",
+        "Router and callers perform post-await abort or generation checks so a late provider response cannot revive a cancelled page, PDF page, YouTube video, or superseded translation generation.",
+        "All manifests use all_frames plus match_about_blank. The Chrome development and release manifests also use match_origin_as_fallback for eligible data:, blob:, and filesystem: child frames; Firefox keeps only the platform-supported inherited about:blank/srcdoc coverage. Context-menu page, image, and selection messages are sent only to the explicit frameId, and selection capture/result delivery disables post-click dynamic injection so another frame cannot reconstruct or consume the original selection.",
+        "Before translation, the originating frame acknowledges a random captureId and navigation generation bound to its live DOM Range, document, window, URL, normalized source text, and five-minute TTL; the result must present that exact identity, so a late result cannot consume a newer same-text selection.",
+        "A subtree observer on the Range common ancestor plus direct-child observers up its ancestor chain invalidate relevant character-data/child-list changes and selected-subtree detach/restore immediately even if text is later restored, while unrelated DOM mutations do not. popstate, hashchange, pageshow, pagehide, and the Navigation API navigate event invalidate same-document and BFCache-stale captures, and capture replacement/consumption/invalidation disconnects its observer, listeners, and timer.",
+        "tools/translation-cancellation.test.mjs plus page, PDF, YouTube, Chrome AI, and Codex contract tests cover ownership, signal propagation, cancel correlation, late-response containment, targeted frames, exact selection capture, relevant versus unrelated mutations, ancestor detach/restore, same-document navigation, and BFCache statically."
+      ],
+      "impact_score": {
+        "change_frequency": 2,
+        "blast_radius": 5,
+        "defect_risk": 5,
+        "verification_gap": 5,
+        "confidence": 5,
+        "total": 1250
+      },
+      "recommended_action": "Run slow-provider and rapid-navigation browser scenarios before changing request ownership, cancellation, selection delivery, or BFCache behavior.",
+      "safe_first_step": "Exercise page, selection, PDF, YouTube, Chrome AI, and Codex cancellation with delayed responses in Chrome and Firefox and inspect that no stale UI or paid follow-up request appears.",
+      "verification": "node --unhandled-rejections=strict --test tools/translation-cancellation.test.mjs; powershell -File tools/verify.ps1; live slow-network/browser matrix pending",
+      "blocked_by": "Representative delayed provider responses and live Chrome/Firefox extension sessions are required for end-to-end evidence.",
+      "notes": "Mitigated on 2026-07-16. Static ownership, AbortSignal, platform-aware frame targeting, exact-capture, navigation, mutation, and BFCache contracts pass; no webNavigation permission was added. Without the Navigation API, a script-only pushState/replaceState round trip that restores the identical URL and leaves the selected DOM untouched is not observable; Firefox also lacks Chrome's match_origin_as_fallback coverage for opaque related frames. Residual risk also includes runtime ordering across real browser messaging and genuinely slow or non-interruptible providers."
+    }
+  ]
+}

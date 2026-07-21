@@ -17,3 +17,23 @@ export async function withTimeout(promise, ms = 25000) {
     clearTimeout(t);
   }
 }
+
+export function createAbortError(signal, fallback = 'Translation cancelled.') {
+  if (signal?.reason instanceof Error) return signal.reason;
+  const error = new Error(fallback);
+  error.name = 'AbortError';
+  error.code = 'TRANSLATION_CANCELLED';
+  return error;
+}
+
+export function throwIfAborted(signal) {
+  if (!signal?.aborted) return;
+  if (typeof signal.throwIfAborted === 'function') signal.throwIfAborted();
+  throw createAbortError(signal);
+}
+
+export function isAbortError(error, signal) {
+  return signal?.aborted === true
+    || error?.name === 'AbortError'
+    || error?.code === 'TRANSLATION_CANCELLED';
+}

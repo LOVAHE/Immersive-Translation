@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Immersive Translate (Cross-Browser)",
-  "version": "3.1.0",
+  "name": "Adaptive Translation",
+  "version": "3.2.0",
   "default_locale": "en",
-  "description": "Modular translation with inline rendering, dictionary mode, YouTube captions, PDF/Image OCR, i18n, and pluggable providers (OpenAI/Gemini/Azure).",
+  "description": "Inline page translation, dictionary bubbles, YouTube captions, and OCR with user-selected providers.",
   "permissions": [
     "contextMenus",
     "storage",
@@ -12,6 +12,9 @@
     "tabs",
     "offscreen"
   ],
+  "optional_permissions": [
+    "nativeMessaging"
+  ],
   "host_permissions": [
     "https://translation.googleapis.com/*",
     "https://api.cognitive.microsofttranslator.com/*",
@@ -19,20 +22,29 @@
     "https://api-free.deepl.com/*",
     "https://api.openai.com/*",
     "https://*/v1/*",
-    "https://generativelanguage.googleapis.com/*"
+    "https://generativelanguage.googleapis.com/*",
+    "https://cdn.jsdelivr.net/*"
+  ],
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*",
+    "file:///*"
   ],
   "background": {
     "service_worker": "background.js",
     "type": "module"
   },
   "action": {
-    "default_title": "Immersive Translate"
+    "default_title": "Adaptive Translation"
   },
   "options_page": "options/options.html",
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["content/content.js"],
+      "all_frames": true,
+      "match_about_blank": true,
+      "match_origin_as_fallback": true,
       "run_at": "document_idle"
     }
   ],
@@ -40,11 +52,8 @@
     {
       "resources": [
         "core/*.js",
-        "providers/*.js",
-        "prompts/*.js",
         "content/*.js",
-        "pages/*.html",
-        "options/*.html",
+        "ocr/*.js",
         "vendor/*"
       ],
       "matches": ["<all_urls>"]

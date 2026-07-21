@@ -6,9 +6,17 @@ import { DeepLTranslate } from './deepl.js';
 import { OpenAIChatTranslate } from './openai.js';
 import { GeminiTranslate } from './gemini.js';
 import { ChromeAiTranslate } from './chromeAi.js';
+import { CodexTranslate } from './codex.js';
+import { resolveProviderId } from './catalog.js';
 
 export function getProvider(id, settings = {}) {
-  switch (id) {
+  switch (resolveProviderId(id)) {
+    case 'codex':
+      return new CodexTranslate({
+        model: settings.codexModel,
+        promptTranslateSystem: settings.openaiPromptTranslateSystem,
+        promptTranslateUser: settings.openaiPromptTranslateUser
+      });
     case 'chrome-ai':
       return new ChromeAiTranslate({
         promptTranslateSystem: settings.openaiPromptTranslateSystem,
@@ -32,7 +40,6 @@ export function getProvider(id, settings = {}) {
         promptDictUser:        settings.openaiPromptDictUser
       });
     case 'openai':
-    default:
       return new OpenAIChatTranslate({
         apiKey: settings.openaiKey,
         baseUrl: settings.openaiBaseUrl,  // leave empty to use official

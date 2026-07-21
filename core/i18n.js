@@ -1,7 +1,7 @@
 let M = {}; let cur = 'en';
 function norm(l){ return (l||'').toLowerCase().split('-')[0] || 'en'; }
 export async function initI18n(pref){
-  const api = globalThis.chrome ?? globalThis.browser;
+  const api = globalThis.browser ?? globalThis.chrome;
   const fallback = norm(api?.i18n?.getUILanguage?.() || navigator.language);
   const list = [pref, fallback, 'en'].filter(Boolean).map(norm);
   for (const loc of list) {

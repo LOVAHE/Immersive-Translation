@@ -1,0 +1,17 @@
+{
+  "name": "adaptive-translation-codex-companion",
+  "version": "3.2.0",
+  "private": true,
+  "description": "Local native-messaging bridge between Adaptive Translation and the Codex SDK.",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node host.mjs",
+    "test": "node --test ../tools/codex-companion.test.mjs"
+  },
+  "dependencies": {
+    "@openai/codex-sdk": "0.144.5"
+  }
+}

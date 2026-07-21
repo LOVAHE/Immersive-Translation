@@ -1,8 +1,16 @@
 // options/options.js
 
-import { getSettings, setSettings } from '../core/settings.js';
+import {
+  SECRET_SETTING_KEYS,
+  getSettings,
+  normalizeCodexModel,
+  setSettings
+} from '../core/settings.js';
 import { initI18n, t } from '../core/i18n.js';
 import { ChromeAiTranslate } from '../providers/chromeAi.js';
+import { getProviderDefinition } from '../providers/catalog.js';
+import { requestCodexNativePermission } from '../core/codexNative.js';
+import { callApi } from '../core/browser.js';
 
 const api = (globalThis.browser ?? globalThis.chrome);
 
@@ -13,6 +21,7 @@ const keyFields = [
   'openaiKey', 'openaiBaseUrl', 'openaiModel',
   'geminiKey', 'geminiModel'
 ];
+const secretFields = new Set(SECRET_SETTING_KEYS);
 
 const KEY_LABEL = {
   googleApiKey:   'Google API Key',
@@ -36,16 +45,13 @@ const KEY_PLACEHOLDER = {
 const STYLE_DEFAULTS = {
   translationFontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, sans-serif',
   translationFontSize: '14',
+  translationTheme: 'none',
   translationThemeMode: 'auto',
   translationTextColor: '#0f172a',
   translationBubbleColor: '#ffffff',
   translationBorderColor: '#e2e8f0'
 };
-const MIN_TEXT_CONTRAST = 4.5;
-const PRESET_THEMES = {
-  light: { textColor: '#0f172a', bubbleColor: '#ffffff', borderColor: '#e2e8f0' },
-  dark: { textColor: '#e5edf5', bubbleColor: '#111827', borderColor: '#334155' }
-};
+const TRANSLATION_THEMES = new Set(['none', 'underline', 'dashed', 'highlight', 'weakening', 'mask', 'bold', 'italic']);
 
 /* =========================
    Helpers & i18n
@@ -57,6 +63,20 @@ function applyI18n(root = document) {
     const k = el.getAttribute('data-i18n');
     if (k) el.textContent = t(k);
   });
+  root.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+    const k = el.getAttribute('data-i18n-aria-label');
+    if (k) el.setAttribute('aria-label', t(k));
+  });
+  root.querySelectorAll('[data-i18n-alt]').forEach(el => {
+    const k = el.getAttribute('data-i18n-alt');
+    if (k) el.setAttribute('alt', t(k));
+  });
+  root.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const k = el.getAttribute('data-i18n-placeholder');
+    if (k) el.setAttribute('placeholder', t(k));
+  });
+  const codexStatus = root.querySelector?.('#codexProviderStatus[data-status-i18n]');
+  if (codexStatus) codexStatus.textContent = t(codexStatus.dataset.statusI18n);
 }
 
 function errorMessage(err) {
@@ -84,7 +104,7 @@ function renderKeysForm(s) {
     const safeId = escHtml(id);
     wrap.innerHTML = `
       <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300" for="${safeId}">${escHtml(label)}</label>
-      <input id="${safeId}" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131315] px-4 py-2.5 text-sm font-medium text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all duration-200"
+      <input id="${safeId}" type="${secretFields.has(id) ? 'password' : 'text'}" autocomplete="off" spellcheck="false" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131315] px-4 py-2.5 text-sm font-medium text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all duration-200"
              placeholder="${escHtml(placeholder || '')}" value="${escHtml(value ? String(value) : '')}">
     `;
     return wrap;
@@ -120,41 +140,12 @@ function syncColorPair(id, value) {
   if (text) text.value = next;
 }
 
-function hexToRgb(hex) {
-  const m = /^#([0-9a-f]{6})$/i.exec(String(hex || '').trim());
-  if (!m) return null;
-  const n = Number.parseInt(m[1], 16);
-  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
-}
-
-function relativeLuminance(hex) {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return null;
-  const channel = (value) => {
-    const n = value / 255;
-    return n <= 0.03928 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
-  };
-  return 0.2126 * channel(rgb.r) + 0.7152 * channel(rgb.g) + 0.0722 * channel(rgb.b);
-}
-
-function contrastRatio(a, b) {
-  const l1 = relativeLuminance(a);
-  const l2 = relativeLuminance(b);
-  if (l1 == null || l2 == null) return Number.POSITIVE_INFINITY;
-  const high = Math.max(l1, l2);
-  const low = Math.min(l1, l2);
-  return (high + 0.05) / (low + 0.05);
-}
-
-function readableTextColor(textColor, bubbleColor) {
-  if (contrastRatio(textColor, bubbleColor) >= MIN_TEXT_CONTRAST) return textColor;
-  const dark = '#111827';
-  const light = '#f8fafc';
-  return contrastRatio(light, bubbleColor) >= contrastRatio(dark, bubbleColor) ? light : dark;
-}
-
 function safeThemeMode(value) {
   return ['auto', 'light', 'dark', 'custom'].includes(value) ? value : STYLE_DEFAULTS.translationThemeMode;
+}
+
+function safeTranslationTheme(value) {
+  return TRANSLATION_THEMES.has(value) ? value : STYLE_DEFAULTS.translationTheme;
 }
 
 function hasCustomStyleColors(s = {}) {
@@ -163,28 +154,6 @@ function hasCustomStyleColors(s = {}) {
     ['translationBubbleColor', STYLE_DEFAULTS.translationBubbleColor],
     ['translationBorderColor', STYLE_DEFAULTS.translationBorderColor]
   ].some(([key, fallback]) => isHexColor(s[key]) && String(s[key]).toLowerCase() !== fallback.toLowerCase());
-}
-
-function pageLooksDark() {
-  const bg = getComputedStyle(document.body).backgroundColor;
-  const match = /rgba?\((\d+),\s*(\d+),\s*(\d+)/i.exec(bg);
-  if (!match) return false;
-  const hex = `#${[match[1], match[2], match[3]].map(n => Number(n).toString(16).padStart(2, '0')).join('')}`;
-  const lum = relativeLuminance(hex);
-  return lum != null && lum < 0.45;
-}
-
-function resolvePreviewColors(style) {
-  const mode = safeThemeMode(style.translationThemeMode);
-  if (mode === 'custom') {
-    return {
-      textColor: readableTextColor(style.translationTextColor, style.translationBubbleColor),
-      bubbleColor: style.translationBubbleColor,
-      borderColor: style.translationBorderColor
-    };
-  }
-  const preset = mode === 'dark' || (mode === 'auto' && pageLooksDark()) ? PRESET_THEMES.dark : PRESET_THEMES.light;
-  return preset;
 }
 
 function updateStyleControlsState() {
@@ -202,6 +171,7 @@ function readStylePatchFromForm() {
   return {
     translationFontFamily: $('translationFontFamily')?.value?.trim() || STYLE_DEFAULTS.translationFontFamily,
     translationFontSize: String(Number.isFinite(fontSize) ? fontSize : STYLE_DEFAULTS.translationFontSize),
+    translationTheme: safeTranslationTheme($('translationTheme')?.value || STYLE_DEFAULTS.translationTheme),
     translationThemeMode: safeThemeMode($('translationThemeMode')?.value || STYLE_DEFAULTS.translationThemeMode),
     translationTextColor: colorValue('translationTextColor'),
     translationBubbleColor: colorValue('translationBubbleColor'),
@@ -213,13 +183,10 @@ function updateStylePreview() {
   const preview = $('stylePreview');
   if (!preview) return;
   const style = readStylePatchFromForm();
-  const colors = resolvePreviewColors(style);
   updateStyleControlsState();
-  preview.style.fontFamily = style.translationFontFamily;
-  preview.style.fontSize = `${style.translationFontSize}px`;
-  preview.style.color = colors.textColor;
-  preview.style.backgroundColor = colors.bubbleColor;
-  preview.style.borderColor = colors.borderColor;
+  preview.dataset.translationTheme = style.translationTheme;
+  const target = $('stylePreviewTranslation');
+  if (target) target.tabIndex = style.translationTheme === 'mask' ? 0 : -1;
 }
 
 function attachStyleControls() {
@@ -235,7 +202,7 @@ function attachStyleControls() {
       updateStylePreview();
     });
   });
-  ['translationFontFamily', 'translationFontSize', 'translationThemeMode'].forEach(id => {
+  ['translationTheme', 'translationFontFamily', 'translationFontSize', 'translationThemeMode'].forEach(id => {
     $(id)?.addEventListener('input', updateStylePreview);
   });
 }
@@ -256,6 +223,9 @@ function readPatchFromForm() {
     targetLang: pick('targetLang') || 'zh',
     uiLang:     pick('uiLang')     || 'en',
     enableWordDictionary: pickBool('enableWordDictionary'),
+    codexModel: pick('codexModelMode') === 'custom'
+      ? pick('codexModel')
+      : '',
 
     ytPreferBuiltIn: (pick('ytPrefer') === 'builtin'),
     ytBilingualOverlay: pickBool('ytBilingualOverlay'),
@@ -319,26 +289,149 @@ function attachDiagnostics() {
   }
 }
 
+function codexSupportedInThisBuild() {
+  const manifest = api.runtime?.getManifest?.() || {};
+  return Array.isArray(manifest.optional_permissions)
+    && manifest.optional_permissions.includes('nativeMessaging')
+    && typeof api.runtime?.connectNative === 'function';
+}
+
+async function hasCodexPermission() {
+  if (!codexSupportedInThisBuild() || typeof api.permissions?.contains !== 'function') return false;
+  try {
+    return await callApi(api.permissions.contains.bind(api.permissions), { permissions: ['nativeMessaging'] });
+  } catch {
+    return false;
+  }
+}
+
+function setCodexStatus(key, fallback) {
+  const status = $('codexProviderStatus');
+  if (status) {
+    status.dataset.statusI18n = key;
+    status.textContent = t(key) === key ? fallback : t(key);
+  }
+}
+
+async function checkCodexConnection() {
+  const check = $('codexCheck');
+  if (!codexSupportedInThisBuild()) {
+    setCodexStatus('codexStatusUnavailable', 'Codex translation is unavailable in this browser build.');
+    return;
+  }
+  if (!await hasCodexPermission()) {
+    setCodexStatus('codexStatusPermission', 'Enable the local connection to use Codex.');
+    return;
+  }
+
+  if (check) check.disabled = true;
+  setCodexStatus('codexStatusConnecting', 'Checking the local Codex connection…');
+  try {
+    const response = await api.runtime.sendMessage({ action: 'codexStatus' });
+    if (response?.ok && response.result?.service === 'ready') {
+      setCodexStatus('codexStatusReady', 'The local Codex connection is ready. Your first translation will verify the current sign-in.');
+    } else {
+      setCodexStatus('codexStatusHostMissing', 'The Codex connection is not installed or needs an update.');
+    }
+  } catch {
+    setCodexStatus('codexStatusHostMissing', 'The Codex connection is not installed or needs an update.');
+  } finally {
+    if (check) check.disabled = false;
+  }
+}
+
+function attachCodexControls() {
+  const provider = $('provider');
+  const panel = $('codexProviderPanel');
+  const setup = $('codexSetup');
+  const enable = $('codexEnable');
+  const check = $('codexCheck');
+  const modelMode = $('codexModelMode');
+  const modelField = $('codexModelCustomField');
+  const modelInput = $('codexModel');
+  if (!provider || !panel || !setup || !enable || !check || !modelMode || !modelField || !modelInput) return;
+
+  const renderModel = (selected = provider.value === 'codex') => {
+    const custom = modelMode.value === 'custom';
+    modelField.hidden = !custom;
+    modelInput.disabled = !selected || !custom;
+    modelInput.required = selected && custom;
+  };
+
+  const render = () => {
+    const selected = provider.value === 'codex';
+    panel.hidden = !selected;
+    renderModel(selected);
+    if (!selected) return;
+    const supported = codexSupportedInThisBuild();
+    enable.hidden = !supported;
+    check.hidden = !supported;
+    checkCodexConnection();
+  };
+
+  provider.addEventListener('change', render);
+  modelMode.addEventListener('change', () => renderModel());
+  setup.addEventListener('click', () => {
+    window.open(api.runtime.getURL('pages/codex_setup.html'), '_blank', 'noopener');
+  });
+  enable.addEventListener('click', async () => {
+    enable.disabled = true;
+    const granted = await requestCodexNativePermission();
+    enable.disabled = false;
+    if (!granted) {
+      setCodexStatus('codexStatusDenied', 'The local connection permission was not enabled.');
+      return;
+    }
+    await checkCodexConnection();
+  });
+  check.addEventListener('click', checkCodexConnection);
+  render();
+}
+
 /* =========================
    Tabs Logic
    ========================= */
 function attachTabs() {
-  const btns = document.querySelectorAll('.tab-btn');
-  const tabs = document.querySelectorAll('.tab-content');
+  const btns = Array.from(document.querySelectorAll('.tab-btn'));
+  const tabs = Array.from(document.querySelectorAll('.tab-content'));
+
+  const activate = (activeBtn, { focus = false } = {}) => {
+    btns.forEach(btn => {
+      const selected = btn === activeBtn;
+      btn.classList.toggle('active', selected);
+      btn.setAttribute('aria-selected', String(selected));
+      btn.tabIndex = selected ? 0 : -1;
+    });
+
+    tabs.forEach(tab => {
+      const selected = tab.id === activeBtn.getAttribute('data-target');
+      tab.classList.toggle('active', selected);
+      tab.hidden = !selected;
+    });
+
+    if (focus) activeBtn.focus();
+  };
 
   btns.forEach(btn => {
     if (btn.dataset.tabsBound === 'true') return;
     btn.dataset.tabsBound = 'true';
-    btn.addEventListener('click', () => {
-      btns.forEach(b => b.classList.remove('active'));
-      tabs.forEach(t => t.classList.remove('active'));
-      
-      btn.classList.add('active');
-      const targetId = btn.getAttribute('data-target');
-      const target = document.getElementById(targetId);
-      if (target) target.classList.add('active');
+    btn.addEventListener('click', () => activate(btn));
+    btn.addEventListener('keydown', event => {
+      const current = btns.indexOf(btn);
+      let next = current;
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = (current - 1 + btns.length) % btns.length;
+      else if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = (current + 1) % btns.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = btns.length - 1;
+      else return;
+
+      event.preventDefault();
+      activate(btns[next], { focus: true });
     });
   });
+
+  const initial = btns.find(btn => btn.classList.contains('active')) || btns[0];
+  if (initial) activate(initial);
 }
 
 /* =========================
@@ -353,21 +446,29 @@ function attachTabs() {
     await initI18n(s.uiLang || 'en');
     applyI18n();
 
-    try {
-      const chromeAiStatus = await ChromeAiTranslate.getAvailability();
-      const providerSelect = $('provider');
-      if (chromeAiStatus !== 'unavailable' && providerSelect) {
-        const opt = document.createElement('option');
-        opt.value = 'chrome-ai';
-        opt.textContent = 'Chrome AI (Local)';
+    const providerSelect = $('provider');
+    if (providerSelect) {
+      const chromeAi = getProviderDefinition('chrome-ai');
+      const opt = document.createElement('option');
+      opt.value = chromeAi.id;
+      opt.textContent = chromeAi.label;
+
+      try {
+        const chromeAiStatus = await ChromeAiTranslate.getAvailability();
         if (chromeAiStatus === 'downloading') {
-          opt.textContent += ' (downloading...)';
+          opt.textContent += ' — downloading';
+          opt.disabled = true;
+        } else if (chromeAiStatus === 'unavailable') {
+          opt.textContent += ' — unavailable';
           opt.disabled = true;
         }
-        providerSelect.appendChild(opt);
+      } catch (err) {
+        opt.textContent += ' — unavailable';
+        opt.disabled = true;
+        console.warn('[options] Chrome AI availability check skipped:', err);
       }
-    } catch (err) {
-      console.warn('[options] Chrome AI availability check skipped:', err);
+
+      providerSelect.appendChild(opt);
     }
 
     document.querySelector('#provider option[value="openai-compat"]')?.remove();
@@ -376,12 +477,17 @@ function attachTabs() {
     const setChk = (id, v) => { const el = $(id); if (el) el.checked = !!v; };
 
     setVal('provider', (s.provider === 'openai-compat') ? 'openai' : (s.provider || 'openai'));
+    const codexModel = normalizeCodexModel(s.codexModel);
+    setVal('codexModelMode', codexModel ? 'custom' : 'automatic');
+    setVal('codexModel', codexModel);
+    attachCodexControls();
     setVal('sourceLang', s.sourceLang || 'auto');
     setVal('targetLang', s.targetLang || 'zh');
     setChk('enableWordDictionary', !!s.enableWordDictionary);
 
     setVal('translationFontFamily', s.translationFontFamily || STYLE_DEFAULTS.translationFontFamily);
     setVal('translationFontSize', s.translationFontSize || STYLE_DEFAULTS.translationFontSize);
+    setVal('translationTheme', safeTranslationTheme(s.translationTheme));
     const initialThemeMode = s.translationThemeMode === 'auto' && hasCustomStyleColors(s)
       ? 'custom'
       : (s.translationThemeMode || STYLE_DEFAULTS.translationThemeMode);
@@ -414,12 +520,24 @@ function attachTabs() {
       clearTimeout(_saveTimeout);
       _saveTimeout = setTimeout(async () => {
         try {
+          const codexModelInput = $('codexModel');
           const patch = readPatchFromForm();
+          const customCodexModel = $('codexModelMode')?.value === 'custom';
+          const invalidCustomModel = customCodexModel
+            && !normalizeCodexModel(codexModelInput?.value);
+          if (invalidCustomModel) {
+            if ($('provider')?.value === 'codex') {
+              codexModelInput?.reportValidity?.();
+              return;
+            }
+            // Leaving Codex must not turn an invalid draft into Automatic.
+            // Save the unrelated fields and preserve the last valid model.
+            delete patch.codexModel;
+          }
           await setSettings(patch);
           await initI18n(patch.uiLang || 'en');
           applyI18n();
           updateStylePreview();
-          console.log('[options] auto-save OK');
         } catch (e) {
           console.error('[options] auto-save failed:', e);
         }

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="codexSetupTitle">Set up local Codex</title>
+  <link rel="stylesheet" href="codex_setup.css">
+</head>
+<body>
+  <main class="setup-shell">
+    <header class="setup-header">
+      <img src="../icons/icon128.png" alt="" width="48" height="48">
+      <div>
+        <p class="eyebrow" data-i18n="productName">Adaptive Translation</p>
+        <h1 data-i18n="codexSetupTitle">Set up local Codex</h1>
+      </div>
+    </header>
+
+    <p class="intro" data-i18n="codexSetupIntro">Codex translation uses a companion installed on this Windows PC and a dedicated ChatGPT sign-in managed by Codex.</p>
+
+    <section class="setup-card" aria-labelledby="extension-heading">
+      <h2 id="extension-heading" data-i18n="codexSetupExtensionId">Extension ID</h2>
+      <div class="id-row">
+        <code id="extension-id"></code>
+        <button id="copy-id" type="button" data-i18n="codexSetupCopy">Copy</button>
+      </div>
+      <p id="copy-status" class="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="setup-card" aria-labelledby="steps-heading">
+      <h2 id="steps-heading" data-i18n="codexSetupSteps">Installation</h2>
+      <ol>
+        <li data-i18n="codexSetupStepDownload">Download and extract the Codex companion ZIP distributed with this Adaptive Translation release.</li>
+        <li data-i18n="codexSetupStepOpen">Open PowerShell in the extracted companion folder.</li>
+        <li>
+          <span data-i18n="codexSetupStepRun">Run this command:</span>
+          <code id="install-command" class="command"></code>
+        </li>
+        <li data-i18n="codexSetupStepReload">Complete the ChatGPT sign-in, reload Adaptive Translation, and choose Check again.</li>
+      </ol>
+    </section>
+
+    <aside class="security-note" data-i18n="codexSetupSecurity">The companion accepts translation requests only from this extension, uses an isolated Codex profile, requires ChatGPT authentication, and does not inherit API keys.</aside>
+  </main>
+  <script type="module" src="codex_setup.js"></script>
+</body>
+</html>

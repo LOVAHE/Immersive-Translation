@@ -1,26 +1,65 @@
 <!doctype html>
-<meta charset="utf-8">
-<title>PDF Translator</title>
-<style>
-  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, sans-serif; background:#111; color:#eee; }
-  #c { position:relative; width:100vw; height:100vh; overflow:auto; }
-  .page { position:relative; margin: 12px auto; background:#333; }
-  .block { 
-    position:absolute; 
-    z-index: 10;
-    pointer-events: auto;
-  }
-  .block:hover { z-index: 20; }
-  .tl-bubble { 
-    background: #fff; 
-    color: #0f172a; 
-    padding: 6px 12px; 
-    border-radius: 8px; 
-    font: 14px/1.5 system-ui, -apple-system, sans-serif; 
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-    border: 1px solid rgba(0,0,0,0.08);
-    display: inline-block;
-  }
-</style>
-<div id="c"></div>
-<script type="module" src="pdf_viewer.js"></script>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title data-i18n="pdfDocumentTitle">Adaptive Translation · PDF</title>
+  <link rel="stylesheet" href="pdf_viewer.css">
+</head>
+<body>
+  <header id="pdf-toolbar" aria-label="PDF reader toolbar" data-i18n-aria-label="pdfToolbarLabel">
+    <div class="brand" aria-label="Adaptive PDF" data-i18n-aria-label="pdfProductName">
+      <img class="brand-mark" src="../icons/icon32.png" alt="" aria-hidden="true">
+      <span data-i18n="pdfProductName">Adaptive PDF</span>
+    </div>
+    <div class="toolbar-separator" aria-hidden="true"></div>
+    <div class="toolbar-group" aria-label="Page navigation" data-i18n-aria-label="pdfPageNavigation">
+      <button id="pdf-prev" class="icon-button" type="button" data-i18n="pdfPrevious">Previous</button>
+      <label class="page-control">
+        <span class="visually-hidden" data-i18n="pdfCurrentPage">Current page</span>
+        <input id="pdf-page-number" type="number" min="1" value="1" inputmode="numeric">
+        <span aria-hidden="true">/</span>
+        <span id="pdf-page-count">—</span>
+      </label>
+      <button id="pdf-next" class="icon-button" type="button" data-i18n="pdfNext">Next</button>
+    </div>
+    <div class="toolbar-separator" aria-hidden="true"></div>
+    <div class="toolbar-group" aria-label="Zoom controls" data-i18n-aria-label="pdfZoomControls">
+      <button id="pdf-zoom-out" class="icon-button" type="button" data-i18n="pdfZoomOut">Zoom out</button>
+      <button id="pdf-zoom" class="zoom-value" type="button" aria-label="Fit page width" data-i18n-aria-label="pdfFitWidth">100%</button>
+      <button id="pdf-zoom-in" class="icon-button" type="button" data-i18n="pdfZoomIn">Zoom in</button>
+    </div>
+    <div class="toolbar-spacer"></div>
+    <p id="pdf-status" role="status" aria-live="polite" data-i18n="pdfOpening">Opening PDF…</p>
+    <button id="pdf-retry-document" class="toolbar-button" type="button" hidden data-i18n="retryTranslation">Retry</button>
+    <button id="pdf-mode" class="toolbar-button" type="button" aria-pressed="false" data-i18n="pdfBilingual">Bilingual</button>
+  </header>
+
+  <main id="pdf-scroll" tabindex="-1">
+    <div id="pdf-document" aria-label="Translated PDF" data-i18n-aria-label="pdfDocumentLabel"></div>
+  </main>
+
+  <template id="pdf-page-template">
+    <section class="spread" aria-label="PDF page pair">
+      <article class="page-side source-side">
+        <div class="page-label">Original</div>
+        <div class="pdf-page source-page">
+          <canvas aria-hidden="true"></canvas>
+          <div class="text-layer"></div>
+        </div>
+      </article>
+      <article class="page-side target-side">
+        <div class="page-label">Translation</div>
+        <div class="pdf-page translation-page">
+          <canvas aria-hidden="true"></canvas>
+          <div class="translation-layer"></div>
+          <div class="page-message" role="status"></div>
+        </div>
+      </article>
+    </section>
+  </template>
+
+  <script type="module" src="pdf_viewer.js"></script>
+</body>
+</html>

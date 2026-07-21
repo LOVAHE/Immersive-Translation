@@ -1,6 +1,7 @@
 // providers/chromeAi.js
 import { BaseTranslator } from './base.js';
-import { withTimeout } from '../core/utils.js';
+import { normalizeDictionary } from './dictionary.js';
+import { throwIfAborted, withTimeout } from '../core/utils.js';
 import { createLogger } from '../core/log.js';
 import { buildTranslatePrompt, buildDictionaryPrompt } from '../prompts/common.js';
 
@@ -12,9 +13,25 @@ function getChromeAiLanguageModel() {
   return model;
 }
 
+async function withLanguageModelSession(options, signal, task) {
+  throwIfAborted(signal);
+  const session = await getChromeAiLanguageModel().create({ ...options, signal });
+  const onAbort = () => {
+    try { session.destroy?.(); } catch { }
+  };
+  signal?.addEventListener('abort', onAbort, { once: true });
+  try {
+    throwIfAborted(signal);
+    return await task(session);
+  } finally {
+    signal?.removeEventListener('abort', onAbort);
+    try { session.destroy?.(); } catch { }
+  }
+}
+
 export class ChromeAiTranslate extends BaseTranslator {
   id = 'chrome-ai';
-  label = 'Chrome AI (Local)';
+  label = 'Chrome AI (Experimental)';
   
   constructor(cfg) {
     super(cfg || {});
@@ -34,19 +51,20 @@ export class ChromeAiTranslate extends BaseTranslator {
     }
   }
 
-  async translate({ text, sourceLang = 'auto', targetLang }) {
+  async translate({ text, sourceLang = 'auto', targetLang, signal }) {
     const { systemText, userText } = buildTranslatePrompt({
       text, sourceLang, targetLang,
       systemOverride: this.config.promptTranslateSystem,
       userOverride: this.config.promptTranslateUser
     });
 
-    const session = await getChromeAiLanguageModel().create({
-      initialPrompts: [{ role: 'system', content: systemText }]
-    });
-
     L.info('POST chrome-ai translate');
-    const result = await withTimeout(session.prompt(userText), this.timeouts.translate);
+    const result = await withLanguageModelSession({
+      initialPrompts: [{ role: 'system', content: systemText }]
+    }, signal, session => withTimeout(
+      session.prompt(userText, { signal }),
+      this.timeouts.translate
+    ));
 
     // The Gemini provider has a `extractThink` helper. We don't have that concept here,
     // so we just return the text directly.
@@ -56,7 +74,7 @@ export class ChromeAiTranslate extends BaseTranslator {
     return { translated, raw: result, think: '', mode: 'translate', provider: this.id };
   }
 
-  async define({ text, targetLang, sourceLang = 'auto' }) {
+  async define({ text, targetLang, sourceLang = 'auto', signal }) {
     const { systemText, userText } = buildDictionaryPrompt({
       text, targetLang, sourceLang,
       systemOverride: this.config.promptDictSystem,
@@ -96,12 +114,13 @@ export class ChromeAiTranslate extends BaseTranslator {
       required: ['headword', 'senses']
     };
     
-    const session = await getChromeAiLanguageModel().create({
-      initialPrompts: [{ role: 'system', content: systemText }]
-    });
-
     L.info('POST chrome-ai define');
-    const raw = await withTimeout(session.prompt(userText, { responseConstraint: { schema } }), this.timeouts.dict);
+    const raw = await withLanguageModelSession({
+      initialPrompts: [{ role: 'system', content: systemText }]
+    }, signal, session => withTimeout(session.prompt(userText, {
+      responseConstraint: { schema },
+      signal
+    }), this.timeouts.dict));
     let dictionary;
     try { dictionary = JSON.parse(raw); }
     catch { dictionary = null; }
@@ -109,41 +128,30 @@ export class ChromeAiTranslate extends BaseTranslator {
     if (!dictionary) {
       dictionary = { headword: text, phonetic: null, senses: [{ pos: '', gloss_tl: raw || '', examples: [] }], synonyms: [] };
     } else {
-      // Clean up the response, similar to the gemini provider
-      if (Array.isArray(dictionary.senses)) {
-        dictionary.senses = dictionary.senses.map(s => ({
-          pos: s.pos || '',
-          gloss_tl: s.gloss_tl || s.gloss || '',
-          examples: Array.isArray(s.examples)
-            ? s.examples.map(e => ({ src: e.src ?? e.en ?? '', tgt: e.tgt ?? e.tl ?? '' }))
-            : []
-        }));
-      } else { dictionary.senses = []; }
-      if (!Array.isArray(dictionary.synonyms)) dictionary.synonyms = [];
-      if (typeof dictionary.headword !== 'string') dictionary.headword = String(text);
-      if (dictionary.phonetic !== null && typeof dictionary.phonetic !== 'string') dictionary.phonetic = null;
+      dictionary = normalizeDictionary(dictionary, text);
     }
 
     L.info('define ok', { senses: dictionary.senses.length });
     return { dictionary, raw, think: '', mode: 'dictionary', provider: this.id };
   }
 
-  async visionTranslate({ imageDataUrl, targetLang }) {
+  async visionTranslate({ imageDataUrl, targetLang, signal }) {
     const dataUrlToBlob = async (dataUrl) => {
-      const res = await fetch(dataUrl);
+      const res = await fetch(dataUrl, { signal });
       return await res.blob();
     };
 
     const imageBlob = await dataUrlToBlob(imageDataUrl);
-    const session = await getChromeAiLanguageModel().create();
-
     const promptContent = [
       { type: 'text', value: `Target language: ${targetLang}\nTranslate visible text from this image. Output translation only.` },
       { type: 'image', value: imageBlob }
     ];
     
     L.info('POST chrome-ai vision');
-    const result = await withTimeout(session.prompt([{ role: 'user', content: promptContent }]), this.timeouts.vision);
+    const result = await withLanguageModelSession({}, signal, session => withTimeout(
+      session.prompt([{ role: 'user', content: promptContent }], { signal }),
+      this.timeouts.vision
+    ));
     const translated = result.trim();
 
     L.info('vision ok', { outLen: translated.length });

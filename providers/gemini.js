@@ -1,5 +1,6 @@
 // providers/gemini.js
 import { BaseTranslator } from './base.js';
+import { normalizeDictionary } from './dictionary.js';
 import { withTimeout } from '../core/utils.js';
 import { createLogger } from '../core/log.js';
 import { buildTranslatePrompt, buildDictionaryPrompt } from '../prompts/common.js';
@@ -29,7 +30,7 @@ export class GeminiTranslate extends BaseTranslator {
   id = 'gemini'; label = 'Gemini';
   constructor(cfg){ super(cfg||{}); this.apiKey=this.config.apiKey; this.model=this.config.model||'gemini-2.5-flash'; this.timeouts={translate:30000, dict:30000, vision:30000}; }
 
-  async translate({ text, sourceLang='auto', targetLang }) {
+  async translate({ text, sourceLang='auto', targetLang, signal }) {
     if (!this.apiKey) throw new Error('Gemini key missing');
 
     const { systemText, userText } = buildTranslatePrompt({
@@ -46,9 +47,9 @@ export class GeminiTranslate extends BaseTranslator {
 
     const url = apiUrl(this.model, this.apiKey);
     L.info('POST gemini translate', { model: this.model });
-    const res = await withTimeout(fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }), this.timeouts.translate);
+    const res = await withTimeout(fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body), signal }), this.timeouts.translate);
     const raw = await res.text().catch(()=> '');
-    if (!res.ok) { L.error('translate error body', raw.slice(0,800)); throw new Error(`Gemini API ${res.status}`); }
+    if (!res.ok) { L.error('translate error', { status: res.status }); throw new Error(`Gemini API ${res.status}`); }
     const data = JSON.parse(raw || '{}');
 
     const joined = partsText(data).trim();
@@ -58,7 +59,7 @@ export class GeminiTranslate extends BaseTranslator {
     return { translated: clean, raw: data, think, mode:'translate', provider: this.id };
   }
 
-  async define({ text, targetLang, sourceLang='auto' }) {
+  async define({ text, targetLang, sourceLang='auto', signal }) {
     if (!this.apiKey) throw new Error('Gemini key missing');
 
     const { systemText, userText } = buildDictionaryPrompt({
@@ -78,9 +79,9 @@ export class GeminiTranslate extends BaseTranslator {
 
     const url = apiUrl(this.model, this.apiKey);
     L.info('POST gemini define', { model: this.model });
-    const res = await withTimeout(fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }), this.timeouts.dict);
+    const res = await withTimeout(fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body), signal }), this.timeouts.dict);
     const raw = await res.text().catch(()=> '');
-    if (!res.ok) { L.error('define error body', raw.slice(0,800)); throw new Error(`Gemini API ${res.status}`); }
+    if (!res.ok) { L.error('define error', { status: res.status }); throw new Error(`Gemini API ${res.status}`); }
     const data = JSON.parse(raw || '{}');
 
     let txt = partsText(data) || '{}';
@@ -93,25 +94,14 @@ export class GeminiTranslate extends BaseTranslator {
     if (!dictionary) {
       dictionary = { headword:text, phonetic:null, senses:[{ pos:'', gloss_tl: clean || '', examples:[] }], synonyms:[] };
     } else {
-      if (Array.isArray(dictionary.senses)) {
-        dictionary.senses = dictionary.senses.map(s => ({
-          pos: s.pos || '',
-          gloss_tl: s.gloss_tl || s.gloss || '',
-          examples: Array.isArray(s.examples)
-            ? s.examples.map(e => ({ src: e.src ?? e.en ?? '', tgt: e.tgt ?? e.tl ?? '' }))
-            : []
-        }));
-      } else { dictionary.senses = []; }
-      if (!Array.isArray(dictionary.synonyms)) dictionary.synonyms = [];
-      if (typeof dictionary.headword !== 'string') dictionary.headword = String(text);
-      if (dictionary.phonetic !== null && typeof dictionary.phonetic !== 'string') dictionary.phonetic = null;
+      dictionary = normalizeDictionary(dictionary, text);
     }
 
     L.info('define ok', { senses: dictionary.senses.length });
     return { dictionary, raw: data, think, mode:'dictionary', provider: this.id };
   }
 
-  async visionTranslate({ imageDataUrl, targetLang }) {
+  async visionTranslate({ imageDataUrl, targetLang, signal }) {
     if (!this.apiKey) throw new Error('Gemini key missing');
     const body = {
       contents:[{ role:'user', parts:[
@@ -122,9 +112,9 @@ export class GeminiTranslate extends BaseTranslator {
     };
     const url = apiUrl(this.model, this.apiKey);
     L.info('POST gemini vision', { model:this.model });
-    const res = await withTimeout(fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }), this.timeouts.vision);
+    const res = await withTimeout(fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body), signal }), this.timeouts.vision);
     const raw = await res.text().catch(()=> '');
-    if (!res.ok) { L.error('vision error body', raw.slice(0,800)); throw new Error(`Gemini API ${res.status}`); }
+    if (!res.ok) { L.error('vision error', { status: res.status }); throw new Error(`Gemini API ${res.status}`); }
     const data = JSON.parse(raw || '{}');
     const translated = partsText(data).trim();
     L.info('vision ok', { outLen: translated.length });
